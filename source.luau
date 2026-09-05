@@ -5101,8 +5101,8 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 0,
-					TextColor3 = NeverLose.AccentColor
+					ImageTransparency = 0,
+					ImageColor3 = NeverLose.AccentColor
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5114,8 +5114,8 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 0.5,
-					TextColor3 = Color3.fromRGB(252, 252, 252)
+					ImageTransparency = 0.5,
+					ImageColor3 = Color3.fromRGB(252, 252, 252)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5182,7 +5182,7 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					TextTransparency = 1,
+					ImageTransparency = 1,
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5407,11 +5407,11 @@ function Window:AddTab(Config)
 				SubFrame.Visible = val
 				if val then
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 0.3 })
-					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = NeverLose.AccentColor })
+					NeverLose.PlayAnimate(SubIcon, SlowyTween, { ImageColor3 = NeverLose.AccentColor })
 					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(255, 255, 255) })
 				else
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 1 })
-					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = Color3.fromRGB(150, 150, 150) })
+					NeverLose.PlayAnimate(SubIcon, SlowyTween, { ImageColor3 = Color3.fromRGB(150, 150, 150) })
 					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(200, 200, 200) })
 				end
 			end
