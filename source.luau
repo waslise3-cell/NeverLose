@@ -145,71 +145,6 @@ isfile = isfile or getgenv().isfile;
 
 local NeverLose = {};
 
--- Fast Lucide icons.
--- The previous version downloaded Lucide.Lua + 9 icon chunks at startup.
--- These are pre-uploaded Lucide Roblox assets, so the UI does not wait for
--- the full Lucide rasterizer before appearing.
-local NeverLoseLucide = {
-	["activity"] = "rbxassetid://10709752035",
-	["crosshair"] = "rbxassetid://10709818534",
-	["mouse"] = "rbxassetid://10734898592",
-	["message-circle"] = "rbxassetid://10734888000",
-	["target"] = "rbxassetid://10734977012",
-	["settings"] = "rbxassetid://10734950309",
-	["settings-2"] = "rbxassetid://10734950020",
-	["sliders"] = "rbxassetid://10734963400",
-	["sliders-horizontal"] = "rbxassetid://10734963191",
-	["folder"] = "rbxassetid://10723387563",
-	["save"] = "rbxassetid://10734941499",
-	["search"] = "rbxassetid://10734943674",
-	["monitor"] = "rbxassetid://10734896881",
-	["eye"] = "rbxassetid://10723346959",
-	["eye-off"] = "rbxassetid://10723346871",
-	["shield"] = "rbxassetid://10734951847",
-	["shield-check"] = "rbxassetid://10734951367",
-	["flame"] = "rbxassetid://10723376114",
-	["gamepad"] = "rbxassetid://10723395457",
-	["gamepad-2"] = "rbxassetid://10723395215",
-	["user"] = "rbxassetid://10747373176",
-	["users"] = "rbxassetid://10747373426",
-	["message-square"] = "rbxassetid://10734888228",
-	["alert-triangle"] = "rbxassetid://10709753149",
-	["check"] = "rbxassetid://10709752301",
-	["x"] = "rbxassetid://10747384394",
-	["minus"] = "rbxassetid://10734896206",
-	["more-horizontal"] = "rbxassetid://10734897250",
-	["more-vertical"] = "rbxassetid://10734897387",
-	["discord"] = "rbxassetid://10709825000",
-}
-
-NeverLose.Lucide = NeverLoseLucide
-
-function NeverLose:CreateLucideIcon(parent, iconName, size, color, zIndex)
-	local image = Instance.new("ImageLabel")
-	image.Name = self.RandomString and self:RandomString() or "LucideIcon"
-	image.Parent = parent
-	image.BackgroundTransparency = 1
-	image.BorderSizePixel = 0
-	image.Size = UDim2.fromOffset(size or 18, size or 18)
-	image.ZIndex = zIndex or 1
-	image.ScaleType = Enum.ScaleType.Fit
-	image.ImageColor3 = color or Color3.fromRGB(255, 255, 255)
-	image.ImageTransparency = 0
-
-	local asset = NeverLoseLucide[iconName]
-	if asset then
-		image.Image = asset
-	elseif typeof(iconName) == "string" then
-		if tonumber(iconName) then
-			image.Image = "rbxassetid://" .. iconName
-		elseif iconName:match("^rbxasset") or iconName:match("^rbxthumb") then
-			image.Image = iconName
-		end
-	end
-
-	return image
-end
-
 NeverLose.BuiltInRegular = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Regular,Enum.FontStyle.Normal);
 NeverLose.BuiltInBold = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Bold,Enum.FontStyle.Normal);
 NeverLose.GlobalSignals = {};
@@ -258,6 +193,9 @@ NeverLose.IconColor = Color3.fromRGB(255, 255, 255);
 NeverLose.ScreenGui = GlobalWindow;
 NeverLose.Flags = {};
 NeverLose.AccentColor = Color3.fromRGB(97, 65, 145);
+NeverLose.TextColor = Color3.fromRGB(255, 255, 255);
+NeverLose.SecondaryTextColor = Color3.fromRGB(186, 186, 186);
+NeverLose.FontName = "GothamMedium";
 NeverLose.MainColor = Color3.fromRGB(8, 8, 13);
 NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
@@ -274,14 +212,13 @@ if getcustomasset then
 		makefolder(dir);
 	end;
 
-	-- Logo is loaded in the background so it does not delay UI startup.
+	-- Load the script logo in the background so startup is not blocked.
 	task.spawn(function()
 		pcall(function()
 			local logoPath = dir .. "/logo.png";
 
 			if not isfile(logoPath) then
-				local byte = game:HttpGet(string.format(link, "logo.png"));
-				writefile(logoPath, byte);
+				writefile(logoPath, game:HttpGet(string.format(link, "logo.png")));
 			end;
 
 			if isfile(logoPath) then
@@ -296,17 +233,27 @@ if getcustomasset then
 		end);
 	end);
 
-	-- Keep the color-picker gradient cached.
 	pcall(function()
 		local gradientPath = dir .. "/saturation_value_gradient.png";
 
 		if not isfile(gradientPath) then
-			local byte = game:HttpGet(string.format(link, "saturation_value_gradient.png"));
-			writefile(gradientPath, byte);
+			writefile(gradientPath, game:HttpGet(string.format(link, "saturation_value_gradient.png")));
 		end;
 
 		if isfile(gradientPath) then
 			NeverLose.ImageColorMapping = getcustomasset(gradientPath);
+		end;
+	end);
+	pcall(function()
+		if not isfile(dir..'/'..'saturation_value_gradient.png') then
+			local byte = game:HttpGet(string.format(link,'saturation_value_gradient.png'));
+
+			writefile(dir..'/'..'saturation_value_gradient.png' , byte);
+			task.wait();
+		end;
+
+		if isfile(dir..'/'..'saturation_value_gradient.png') then
+			NeverLose.ImageColorMapping = getcustomasset(dir..'/'..'saturation_value_gradient.png')
 		end;
 	end);
 end;
@@ -2377,7 +2324,7 @@ end;
 				})
 			else
 				NeverLose.PlayAnimate(Icon , SlowyTween , {
-					ImageTransparency = 1
+					TextTransparency = 1
 				})
 			end;
 		end);
@@ -2403,11 +2350,10 @@ end;
 								reciveSignal:Disconnect();
 								reciveSignal = nil;
 							end;
-
 							Window.Signal:SetValue(false);
-						end
+						end;
 					end;
-				end)
+				end);
 			end;
 		end));
 
@@ -2494,29 +2440,25 @@ end;
 
 		local signal;
 		NeverLose:CreateInput(ColorPicker , LPH_NO_VIRTUALIZE(function()
-			local newValue = not Signal:GetValue();
-
 			if signal then
 				signal:Disconnect();
 				signal = nil;
 			end;
 
-			Signal:SetValue(newValue);
+			BackendM.SetRender(true);
 
-			if newValue then
-				signal = UserInputService.InputBegan:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						if not NeverLose:IsMouseOverFrame(ColorPicker) and not NeverLose:IsMouseOverFrame(BackendM.Root) then
-							if signal then
-								signal:Disconnect();
-								signal = nil;
-							end;
-
-							Signal:SetValue(false);
+			signal = UserInputService.InputBegan:Connect(function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+					if not NeverLose:IsMouseOverFrame(ColorPicker) and not NeverLose:IsMouseOverFrame(BackendM.Root) then
+						if signal then
+							signal:Disconnect();
+							signal = nil;
 						end;
+
+						BackendM.SetRender(false);
 					end;
-				end)
-			end;
+				end;
+			end)
 		end));
 
 		ColorPickerLib.SetRender = LPH_NO_VIRTUALIZE(function(value)
@@ -2937,7 +2879,7 @@ end;
 				});
 
 				NeverLose.PlayAnimate(DropdownIcon , SlowyTween , {
-					ImageTransparency = 0.250
+					TextTransparency = 0.250
 				});
 
 				NeverLose.PlayAnimate(UIStroke , SlowyTween , {
@@ -3082,31 +3024,27 @@ end;
 
 		local SecureSignal;
 		NeverLose:CreateInput(Dropdown , LPH_NO_VIRTUALIZE(function()
-			local newValue = not DropdownLib.OpenSignal:GetValue();
-
 			if SecureSignal then
 				SecureSignal:Disconnect();
 				SecureSignal = nil;
 			end;
 
-			DropdownLib.SetFrameRender(newValue);
-			NeverLose.IsMosueOverOtherFrame = newValue;
+			DropdownLib.SetFrameRender(true);
+			NeverLose.IsMosueOverOtherFrame = true;
 
-			if newValue then
-				SecureSignal = UserInputService.InputBegan:Connect(function(Input)
-					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						if not NeverLose:IsMouseOverFrame(DropdownLib.BlockRoot) and not NeverLose:IsMouseOverFrame(Dropdown) then
-							if SecureSignal then
-								SecureSignal:Disconnect();
-								SecureSignal = nil;
-							end;
-
-							NeverLose.IsMosueOverOtherFrame = false;
-							DropdownLib.SetFrameRender(false);
+			SecureSignal = UserInputService.InputBegan:Connect(function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+					if not NeverLose:IsMouseOverFrame(DropdownLib.BlockRoot) and not NeverLose:IsMouseOverFrame(Dropdown) then
+						if SecureSignal then
+							SecureSignal:Disconnect();
+							SecureSignal = nil;
 						end;
-					end
-				end)
-			end;
+
+						NeverLose.IsMosueOverOtherFrame = false;
+						DropdownLib.SetFrameRender(false);
+					end;
+				end
+			end)
 		end))
 
 		DropdownLib.IsMatch = LPH_NO_VIRTUALIZE(function(v1)
@@ -3744,6 +3682,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		local BasedLabel = Instance.new("TextLabel")
 		local LineFrame = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
+		local Icon = Instance.new("TextLabel")
 
 		NeverLose:AddQuery(ButtonFrame , Config.Name);
 
@@ -3786,29 +3725,28 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = ButtonFrame
 
-		local Icon = NeverLose:CreateLucideIcon(
-			ButtonFrame,
-			Config.Icon,
-			18,
-			Color3.fromRGB(223, 223, 223),
-			LayerIndex + 9
-		);
-		Icon.Position = UDim2.new(0, 11, 0, 5);
-		Icon.ImageTransparency = 0.250;
+		Icon.Name = NeverLose.RandomString();
+		Icon.Parent = ButtonFrame
+		Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		Icon.BackgroundTransparency = 1.000
+		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Icon.BorderSizePixel = 0
+		Icon.Position = UDim2.new(0, 11, 0, 5)
+		Icon.Size = UDim2.new(0, 18, 0, 18)
+		Icon.ZIndex = LayerIndex + 9
+		Icon.FontFace = NeverLose.BuiltInBold
+		Icon.Text = Config.Icon
+		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		Icon.TextSize = 16.000
+		Icon.TextTransparency = 0.250
+		Icon.TextWrapped = true
 
 		function Button:SetText(t)
 			BasedLabel.Text = t;
 		end;
 
 		function Button:SetIcon(t)
-			local asset = NeverLoseLucide[t]
-			if asset then
-				Icon.Image = asset
-			elseif typeof(t) == "string" and tonumber(t) then
-				Icon.Image = "rbxassetid://" .. t
-			elseif typeof(t) == "string" and (t:match("^rbxasset") or t:match("^rbxthumb")) then
-				Icon.Image = t
-			end
+			Icon.Text = t
 		end;
 
 		local bth = NeverLose:CreateInput(ButtonFrame , LPH_NO_VIRTUALIZE(function()
@@ -4010,6 +3948,170 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 	return idx;
 end;
 
+
+-- ============================================================
+-- Runtime UI customization
+-- ============================================================
+
+NeverLose.Fonts = {
+	Gotham = Enum.Font.Gotham,
+	GothamMedium = Enum.Font.GothamMedium,
+	GothamBold = Enum.Font.GothamBold,
+	SourceSans = Enum.Font.SourceSans,
+	SourceSansBold = Enum.Font.SourceSansBold,
+	Roboto = Enum.Font.Roboto,
+	RobotoMono = Enum.Font.RobotoMono,
+	Arial = Enum.Font.Arial,
+	ArialBold = Enum.Font.ArialBold,
+	BuilderIcons = NeverLose.BuiltInRegular,
+};
+
+function NeverLose:_IsBuilderIconLabel(obj)
+	return obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")
+		and (obj.FontFace == NeverLose.BuiltInRegular or obj.FontFace == NeverLose.BuiltInBold);
+end;
+
+function NeverLose:SetFont(fontName)
+	local font = self.Fonts[fontName] or self.Fonts.GothamMedium;
+	self.FontName = fontName or "GothamMedium";
+
+	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
+			local isBuilder = false;
+			pcall(function()
+				isBuilder = (obj.FontFace == self.BuiltInRegular or obj.FontFace == self.BuiltInBold);
+			end);
+
+			if not isBuilder then
+				pcall(function()
+					obj.Font = font;
+				end);
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetTextColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local old = self.TextColor;
+	self.TextColor = color;
+
+	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+			local isBuilder = false;
+			pcall(function()
+				isBuilder = (obj.FontFace == self.BuiltInRegular or obj.FontFace == self.BuiltInBold);
+			end);
+			if not isBuilder and (obj.TextColor3 == old or obj.TextColor3 == Color3.fromRGB(255,255,255)) then
+				obj.TextColor3 = color;
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetSecondaryTextColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local old = self.SecondaryTextColor;
+	self.SecondaryTextColor = color;
+
+	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+			if obj.TextColor3 == old or obj.TextColor3 == Color3.fromRGB(186,186,186) then
+				obj.TextColor3 = color;
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetAccentColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local old = self.AccentColor;
+	self.AccentColor = color;
+
+	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+			if obj.TextColor3 == old then obj.TextColor3 = color end;
+		elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+			if obj.ImageColor3 == old then obj.ImageColor3 = color end;
+		elseif obj:IsA("UIStroke") then
+			if obj.Color == old then obj.Color = color end;
+		elseif obj:IsA("Frame") then
+			-- Only change exact accent-colored controls, not the dark UI background.
+			if obj.BackgroundColor3 == old then obj.BackgroundColor3 = color end;
+		end;
+	end;
+end;
+
+function NeverLose:_NormalizeImage(value)
+	if typeof(value) == "number" then
+		return "rbxassetid://" .. tostring(value);
+	end;
+
+	if typeof(value) ~= "string" then
+		return "";
+	end;
+
+	local s = value:gsub("^%s+", ""):gsub("%s+$", "");
+	if s == "" then return "" end;
+
+	if tonumber(s) then
+		return "rbxassetid://" .. s;
+	end;
+
+	return s;
+end;
+
+function NeverLose:SetBackgroundImage(value, transparency, scaleType)
+	local normalized = self:_NormalizeImage(value);
+	self.BackgroundImageSource = value or "";
+	self.BackgroundImage = normalized;
+
+	local image = self.__WindowBackgroundImage;
+	if not image then return end;
+
+	image.ImageTransparency = tonumber(transparency) or image.ImageTransparency;
+	image.ScaleType = scaleType or image.ScaleType;
+
+	if normalized == "" then
+		image.Image = "";
+		image.Visible = false;
+		return;
+	end;
+
+	-- rbxasset / rbxthumb / asset ids work directly.
+	if normalized:match("^rbxasset") or normalized:match("^rbxthumb") then
+		image.Image = normalized;
+		image.Visible = true;
+		return;
+	end;
+
+	-- HTTP(S) image/CDN URLs: cache locally when the executor supports it.
+	if normalized:match("^https?://") and getcustomasset and writefile then
+		task.spawn(function()
+			local ok = pcall(function()
+				local hash = self.RandomString() .. tostring(math.floor(os.clock()*100000));
+				local ext = normalized:match("%.([%a%d]+)") or "png";
+				ext = ext:lower();
+				if ext ~= "png" and ext ~= "jpg" and ext ~= "jpeg" and ext ~= "webp" then
+					ext = "png";
+				end;
+
+				local path = "assetsss/background_" .. hash .. "." .. ext;
+				writefile(path, game:HttpGet(normalized));
+				local asset = getcustomasset(path);
+
+				image.Image = asset;
+				image.Visible = true;
+				self.BackgroundImageAsset = asset;
+			end);
+
+			if not ok then
+				image.Visible = false;
+			end;
+		end);
+	end;
+end;
+
 function NeverLose:CreateWindow(Config)
 	Config = NeverLose:ProcessParams(Config , {
 		Logo = NeverLose.GlobalLogo,
@@ -4088,6 +4190,22 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Size = Window.Size
 	WindowFrame.Active = true;
 
+	-- Custom 2D background. Supports numeric asset IDs, rbxassetid://,
+	-- rbxthumb:// and direct HTTP(S) image/CDN URLs when getcustomasset exists.
+	local WindowBackgroundImage = Instance.new("ImageLabel");
+	WindowBackgroundImage.Name = NeverLose.RandomString();
+	WindowBackgroundImage.Parent = WindowFrame;
+	WindowBackgroundImage.BackgroundTransparency = 1;
+	WindowBackgroundImage.BorderSizePixel = 0;
+	WindowBackgroundImage.Position = UDim2.fromScale(0, 0);
+	WindowBackgroundImage.Size = UDim2.fromScale(1, 1);
+	WindowBackgroundImage.ZIndex = 0;
+	WindowBackgroundImage.ScaleType = Enum.ScaleType.Crop;
+	WindowBackgroundImage.ImageTransparency = 0.55;
+	WindowBackgroundImage.Visible = false;
+	NeverLose.__WindowBackgroundImage = WindowBackgroundImage;
+	Window.BackgroundImage = WindowBackgroundImage;
+
 	local TopLogoDecorator = Instance.new("ImageLabel")
 	TopLogoDecorator.Parent = WindowFrame
 	TopLogoDecorator.BackgroundTransparency = 1
@@ -4103,8 +4221,8 @@ function NeverLose:CreateWindow(Config)
 	TopLogoDecorator.Position = UDim2.new(0.5, 0, 0, 60) 
     Window.TopLogoDecorator = TopLogoDecorator
 	
-	-- FIX: the library was rendering the same logo again above the window.
-	-- Keep the instance/reference for compatibility, but disable its visual rendering.
+	-- FIX: this decorator duplicated the logo above the window.
+	-- Keep the instance for compatibility, but do not render it.
 	TopLogoDecorator.ZIndex = WindowFrame.ZIndex + 1
 	TopLogoDecorator.Visible = false
 	TopLogoDecorator.ImageTransparency = 1
@@ -4934,6 +5052,7 @@ function Window:AddTab(Config)
 
 		local TabButton = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
+		local TabIcon = Instance.new("TextLabel")
 		local TabContentLabel = Instance.new("TextLabel")
 
 		Tab.Idx = TabButton;
@@ -4951,16 +5070,21 @@ function Window:AddTab(Config)
 		UICorner.CornerRadius = UDim.new(0, 6)
 		UICorner.Parent = TabButton
 
-		local TabIcon = NeverLose:CreateLucideIcon(
-			TabButton,
-			Config.Icon,
-			20,
-			NeverLose.AccentColor,
-			9
-		);
-		TabIcon.AnchorPoint = Vector2.new(0, 0.5);
-		TabIcon.Position = UDim2.new(0, 4, 0.5, 0);
-		TabIcon.ImageTransparency = 0.0;
+		TabIcon.Name = NeverLose.RandomString();
+		TabIcon.Parent = TabButton
+		TabIcon.AnchorPoint = Vector2.new(0, 0.5)
+		TabIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		TabIcon.BackgroundTransparency = 1.000
+		TabIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TabIcon.BorderSizePixel = 0
+		TabIcon.Position = UDim2.new(0, 2, 0.5, 0)
+		TabIcon.Size = UDim2.new(0, 25, 0, 25)
+		TabIcon.ZIndex = 9
+		TabIcon.FontFace = NeverLose.BuiltInBold
+		TabIcon.Text = Config.Icon;
+		TabIcon.TextColor3 = NeverLose.AccentColor
+		TabIcon.TextSize = 16.000
+		TabIcon.TextWrapped = true
 
 		TabContentLabel.Name = NeverLose.RandomString();
 		TabContentLabel.Parent = TabButton
@@ -5074,8 +5198,8 @@ function Window:AddTab(Config)
 			LeftScroll.Position = UDim2.new(0.5, 0, 0.5, 0)
 		end;
 
-		NeverLose:AddSignal(TabIcon:GetPropertyChangedSignal('ImageTransparency'):Connect(LPH_NO_VIRTUALIZE(function()
-			if TabIcon.ImageTransparency > 0.4 then
+		NeverLose:AddSignal(TabIcon:GetPropertyChangedSignal('TextTransparency'):Connect(LPH_NO_VIRTUALIZE(function()
+			if TabIcon.TextTransparency > 0.4 then
 				UIListLayout.Parent = nil;
 				UIListLayout_2.Parent = nil;
 				TabFrame.Visible = false;
@@ -5101,8 +5225,8 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					ImageTransparency = 0,
-					ImageColor3 = NeverLose.AccentColor
+					TextTransparency = 0,
+					TextColor3 = NeverLose.AccentColor
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5114,8 +5238,8 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					ImageTransparency = 0.5,
-					ImageColor3 = Color3.fromRGB(252, 252, 252)
+					TextTransparency = 0.5,
+					TextColor3 = Color3.fromRGB(252, 252, 252)
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5182,7 +5306,7 @@ function Window:AddTab(Config)
 				})
 
 				NeverLose.PlayAnimate(TabIcon , SlowyTween , {
-					ImageTransparency = 1,
+					TextTransparency = 1,
 				})
 
 				NeverLose.PlayAnimate(TabContentLabel , SlowyTween , {
@@ -5336,15 +5460,19 @@ function Window:AddTab(Config)
 			SubCorner.CornerRadius = UDim.new(0, 6)
 			SubCorner.Parent = SubButton
 
-			local SubIcon = NeverLose:CreateLucideIcon(
-				SubButton,
-				SubConfig.Icon,
-				17,
-				Color3.fromRGB(150, 150, 150),
-				9
-			);
-			SubIcon.AnchorPoint = Vector2.new(0, 0.5);
-			SubIcon.Position = UDim2.new(0, 4, 0.5, 0);
+			local SubIcon = Instance.new("TextLabel")
+			SubIcon.Name = NeverLose.RandomString();
+			SubIcon.Parent = SubButton
+			SubIcon.AnchorPoint = Vector2.new(0, 0.5)
+			SubIcon.BackgroundTransparency = 1
+			SubIcon.Position = UDim2.new(0, 4, 0.5, 0)
+			SubIcon.Size = UDim2.new(0, 20, 0, 20)
+			SubIcon.ZIndex = 9
+			SubIcon.FontFace = NeverLose.BuiltInBold
+			SubIcon.Text = SubConfig.Icon;
+			SubIcon.TextColor3 = Color3.fromRGB(150, 150, 150)
+			SubIcon.TextSize = 13.000
+			SubIcon.TextWrapped = true
 
 			local SubLabel = Instance.new("TextLabel")
 			SubLabel.Name = NeverLose.RandomString();
@@ -5407,11 +5535,11 @@ function Window:AddTab(Config)
 				SubFrame.Visible = val
 				if val then
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 0.3 })
-					NeverLose.PlayAnimate(SubIcon, SlowyTween, { ImageColor3 = NeverLose.AccentColor })
+					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = NeverLose.AccentColor })
 					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(255, 255, 255) })
 				else
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 1 })
-					NeverLose.PlayAnimate(SubIcon, SlowyTween, { ImageColor3 = Color3.fromRGB(150, 150, 150) })
+					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = Color3.fromRGB(150, 150, 150) })
 					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(200, 200, 200) })
 				end
 			end
@@ -6158,7 +6286,6 @@ function Window:AddTab(Config)
 			if newValue then
 				ConfigLib.UnsafeThread = UserInputService.InputBegan:Connect(function(Input)
 					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-						-- The trigger itself is not an outside click.
 						if not NeverLose:IsMouseOverFrame(ConfigMenu) and not NeverLose:IsMouseOverFrame(OpenButton) then
 							if ConfigLib.UnsafeThread then
 								ConfigLib.UnsafeThread:Disconnect();
@@ -6167,7 +6294,7 @@ function Window:AddTab(Config)
 							ConfigSignal:SetValue(false);
 						end;
 					end;
-				end)
+				end);
 			end;
 		end));
 
@@ -6196,15 +6323,139 @@ function Window:AddTab(Config)
 							reciveSignal:Disconnect();
 							reciveSignal = nil;
 						end;
-
 						UserSettings.Signal:SetValue(false);
-					end
+					end;
 				end;
 			end);
 		end;
 	end))
 
 	Window.UserSettings = UserSettings;
+
+	-- ========================================================
+	-- GUI CUSTOMIZATION
+	-- ========================================================
+
+	local GUITheme = UserSettings:AddLabel("Accent Color");
+	GUITheme:AddColorPicker({
+		Default = NeverLose.AccentColor,
+		Callback = function(v)
+			Window:SetAccentColor(v);
+		end,
+	});
+
+	local GUIText = UserSettings:AddLabel("Text Color");
+	GUIText:AddColorPicker({
+		Default = NeverLose.TextColor,
+		Callback = function(v)
+			Window:SetTextColor(v);
+		end,
+	});
+
+	local GUISecondaryText = UserSettings:AddLabel("Secondary Text");
+	GUISecondaryText:AddColorPicker({
+		Default = NeverLose.SecondaryTextColor,
+		Callback = function(v)
+			Window:SetSecondaryTextColor(v);
+		end,
+	});
+
+	UserSettings:AddLabel("Font"):AddDropdown({
+		Default = NeverLose.FontName,
+		Values = {
+			"Gotham",
+			"GothamMedium",
+			"GothamBold",
+			"SourceSans",
+			"SourceSansBold",
+			"Roboto",
+			"RobotoMono",
+			"Arial",
+			"ArialBold",
+		},
+		Callback = function(v)
+			Window:SetFont(v);
+		end,
+	});
+
+	local BackgroundInput = UserSettings:AddLabel("Background Image");
+	local BackgroundRequestId = 0;
+	local BackgroundValue = BackgroundInput:AddTextInput({
+		Default = "",
+		Placeholder = "Asset ID / image URL / Discord CDN",
+		Size = 150,
+		Callback = function(v)
+			BackgroundRequestId += 1;
+			local requestId = BackgroundRequestId;
+
+			-- Asset IDs can be applied immediately.
+			if typeof(v) == "number" or (typeof(v) == "string" and tonumber(v)) then
+				Window:SetBackgroundImage(v);
+				return;
+			end;
+
+			-- Do not HTTP-request on every keystroke while the user is typing.
+			task.delay(0.35, function()
+				if requestId == BackgroundRequestId then
+					Window:SetBackgroundImage(v);
+				end;
+			end);
+		end,
+	});
+
+	BackgroundInput:AddSlider({
+		Min = 0,
+		Max = 100,
+		Default = 55,
+		Type = "%",
+		Size = 95,
+		Callback = function(v)
+			Window:SetBackgroundImage(BackgroundValue:GetValue(), v / 100);
+		end,
+	});
+
+	UserSettings:AddLabel("Background"):AddDropdown({
+		Default = "Crop",
+		Values = {"Crop", "Fit", "Stretch", "Tile"},
+		Callback = function(v)
+			local modes = {
+				Crop = Enum.ScaleType.Crop,
+				Fit = Enum.ScaleType.Fit,
+				Stretch = Enum.ScaleType.Stretch,
+				Tile = Enum.ScaleType.Tile,
+			};
+			Window:SetBackgroundImage(BackgroundValue:GetValue(), nil, modes[v]);
+		end,
+	});
+
+	function Window:ResetGUITheme()
+		self:SetAccentColor(Color3.fromRGB(97, 65, 145));
+		self:SetTextColor(Color3.fromRGB(255, 255, 255));
+		self:SetSecondaryTextColor(Color3.fromRGB(186, 186, 186));
+		self:SetFont("GothamMedium");
+	end;
+
+	function Window:ClearBackgroundImage()
+		self:SetBackgroundImage("");
+	end;
+
+	function Window:GetBackgroundImage()
+		return self.BackgroundImage or "";
+	end;
+
+	function Window:SetBackgroundTransparency(value)
+		self:SetBackgroundImage(self.BackgroundImageSource or "", value);
+	end;
+
+	function Window:SetBackgroundScaleType(value)
+		local modes = {
+			Crop = Enum.ScaleType.Crop,
+			Fit = Enum.ScaleType.Fit,
+			Stretch = Enum.ScaleType.Stretch,
+			Tile = Enum.ScaleType.Tile,
+		};
+		self:SetBackgroundImage(self.BackgroundImageSource or "", nil, modes[value] or Enum.ScaleType.Crop);
+	end;
 
 	function Window:SetAccount(Config)
 	Config = NeverLose:ProcessParams(Config , {
@@ -6242,6 +6493,26 @@ function Window:AddTab(Config)
 				Size = Window.Size
 			})
 		end
+	end;
+
+	function Window:SetAccentColor(color)
+		NeverLose:SetAccentColor(color);
+	end;
+
+	function Window:SetTextColor(color)
+		NeverLose:SetTextColor(color);
+	end;
+
+	function Window:SetSecondaryTextColor(color)
+		NeverLose:SetSecondaryTextColor(color);
+	end;
+
+	function Window:SetFont(fontName)
+		NeverLose:SetFont(fontName);
+	end;
+
+	function Window:SetBackgroundImage(value, transparency, scaleType)
+		NeverLose:SetBackgroundImage(value, transparency, scaleType);
 	end;
 
 	Window:SetAccount();
@@ -6375,6 +6646,7 @@ function Window:AddTab(Config)
 
 			local Frame = Instance.new("Frame")
 			local Content = Instance.new("TextLabel")
+			local Icon = Instance.new("TextLabel")
 
 			Frame.Parent = Watermark
 			Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -6400,16 +6672,22 @@ function Window:AddTab(Config)
 			Content.TextTransparency = 0.200
 			Content.TextXAlignment = Enum.TextXAlignment.Left
 
-			local Icon = NeverLose:CreateLucideIcon(
-				Frame,
-				IconStr,
-				20,
-				NeverLose.AccentColor,
-				17
-			);
-			Icon.AnchorPoint = Vector2.new(0, 0.5);
-			Icon.Position = UDim2.new(0, 10, 0.5, 0);
-			Icon.ImageTransparency = 0.250;
+			Icon.Name = NeverLose.RandomString();
+			Icon.Parent = Frame
+			Icon.AnchorPoint = Vector2.new(0, 0.5)
+			Icon.BackgroundColor3 = Color3.fromRGB(186, 186, 186)
+			Icon.BackgroundTransparency = 1.000
+			Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Icon.BorderSizePixel = 0
+			Icon.Position = UDim2.new(0, 10, 0.5, 0)
+			Icon.Size = UDim2.new(0, 20, 0, 20)
+			Icon.ZIndex = 17
+			Icon.FontFace = NeverLose.BuiltInBold;
+			Icon.Text = IconStr
+			Icon.TextColor3 = NeverLose.AccentColor
+			Icon.TextSize = 18.000
+			Icon.TextTransparency = 0.250
+			Icon.TextWrapped = true
 
 			InnerBlock.Update = LPH_NO_VIRTUALIZE(function(value)
 				local size = TextService:GetTextSize(Content.Text , Content.TextSize,Content.Font,Vector2.new(math.huge,math.huge))
@@ -6446,7 +6724,7 @@ function Window:AddTab(Config)
 					})
 
 					NeverLose.PlayAnimate(Icon,SlowyTween , {
-						ImageTransparency = 0.250
+						TextTransparency = 0.250
 					})
 				else
 
@@ -6455,7 +6733,7 @@ function Window:AddTab(Config)
 					})
 
 					NeverLose.PlayAnimate(Icon,SlowyTween , {
-						ImageTransparency = 1
+						TextTransparency = 1
 					})
 				end;
 			end);
