@@ -148,7 +148,7 @@ local NeverLose = {};
 NeverLose.BuiltInRegular = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Regular,Enum.FontStyle.Normal);
 NeverLose.BuiltInBold = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Bold,Enum.FontStyle.Normal);
 NeverLose.GlobalSignals = {};
-NeverLose.UnloadEnabled = false;
+NeverLose.UnloadEnabled = true;
 
 local cloneref: cloneref = cloneref or function(f) return f end;
 local TweenService: TweenService = cloneref(game:GetService('TweenService'));
@@ -3858,6 +3858,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 
 		UserFrame.Name = NeverLose.RandomString();
 		UserFrame.Parent = Frame
+		UserFrame.LayoutOrder = -10000
 		UserFrame.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
 		UserFrame.BackgroundTransparency = 1.000
 		UserFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -3924,6 +3925,62 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserStatusLabel.TextSize = 13.000
 		UserStatusLabel.TextTransparency = 0.200
 		UserStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+		-- Unload: first click changes the button itself to "Are you sure?",
+		-- second click within 1 second destroys the entire library.
+		local UnloadButton = Instance.new("TextButton")
+		local UnloadCorner = Instance.new("UICorner")
+		UnloadButton.Name = NeverLose.RandomString()
+		UnloadButton.Parent = UserFrame
+		UnloadButton.AnchorPoint = Vector2.new(1, 0.5)
+		UnloadButton.Position = UDim2.new(1, -10, 0.5, 0)
+		UnloadButton.Size = UDim2.fromOffset(72, 24)
+		UnloadButton.BackgroundColor3 = NeverLose.ElementColor
+		UnloadButton.BackgroundTransparency = 0.15
+		UnloadButton.BorderSizePixel = 0
+		UnloadButton.ZIndex = LayerIndex + 12
+		UnloadButton.AutoButtonColor = false
+		UnloadButton.Font = Enum.Font.GothamMedium
+		UnloadButton.Text = "Unload"
+		UnloadButton.TextColor3 = NeverLose.TextColor
+		UnloadButton.TextSize = 11
+		UnloadCorner.CornerRadius = UDim.new(0, 5)
+		UnloadCorner.Parent = UnloadButton
+
+		local unloadArmed = false
+		local unloadToken = 0
+		local function doUnload()
+			unloadToken += 1
+			unloadArmed = false
+			NeverLose:Unload()
+		end
+		NeverLose:AddSignal(UnloadButton.MouseButton1Click:Connect(function()
+			if not unloadArmed then
+				unloadArmed = true
+				unloadToken += 1
+				local token = unloadToken
+				UnloadButton.Text = "Are you sure?"
+				task.delay(1, function()
+					if unloadArmed and unloadToken == token and UnloadButton.Parent then
+						unloadArmed = false
+						UnloadButton.Text = "Unload"
+					end
+				end)
+			else
+				doUnload()
+			end
+		end))
+
+		NeverLose:AddSignal(UnloadButton.MouseEnter:Connect(function()
+			if not unloadArmed then
+				UnloadButton.BackgroundColor3 = NeverLose.AccentColor
+			end
+		end))
+		NeverLose:AddSignal(UnloadButton.MouseLeave:Connect(function()
+			if UnloadButton.Parent then
+				UnloadButton.BackgroundColor3 = NeverLose.ElementColor
+			end
+		end))
 
 		local UserFrameItem = {};
 
@@ -3996,12 +4053,28 @@ NeverLose.Fonts = {
 	Gotham = Enum.Font.Gotham,
 	GothamMedium = Enum.Font.GothamMedium,
 	GothamBold = Enum.Font.GothamBold,
+	GothamBlack = Enum.Font.GothamBlack,
+	GothamSemibold = Enum.Font.GothamSemibold,
 	SourceSans = Enum.Font.SourceSans,
 	SourceSansBold = Enum.Font.SourceSansBold,
+	SourceSansLight = Enum.Font.SourceSansLight,
+	SourceSansSemibold = Enum.Font.SourceSansSemibold,
+	SourceSansItalic = Enum.Font.SourceSansItalic,
 	Roboto = Enum.Font.Roboto,
+	RobotoBold = Enum.Font.RobotoBold,
+	RobotoCondensed = Enum.Font.RobotoCondensed,
 	RobotoMono = Enum.Font.RobotoMono,
 	Arial = Enum.Font.Arial,
 	ArialBold = Enum.Font.ArialBold,
+	BuilderSans = Enum.Font.BuilderSans,
+	BuilderSansMedium = Enum.Font.BuilderSansMedium,
+	BuilderSansBold = Enum.Font.BuilderSansBold,
+	BuilderSansExtraBold = Enum.Font.BuilderSansExtraBold,
+	Code = Enum.Font.Code,
+	Fantasy = Enum.Font.Fantasy,
+	Arcade = Enum.Font.Arcade,
+	Highway = Enum.Font.Highway,
+	Legacy = Enum.Font.Legacy,
 	BuilderIcons = NeverLose.BuiltInRegular,
 };
 
@@ -4155,7 +4228,7 @@ function NeverLose:_ApplyThemeToObject(obj)
 end;
 
 function NeverLose:_ApplyTheme()
-	if not self.ScreenGui then return end;
+	if self.__Unloaded or not self.ScreenGui then return end;
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		self:_ApplyThemeToObject(obj);
@@ -4163,6 +4236,7 @@ function NeverLose:_ApplyTheme()
 end;
 
 function NeverLose:SetFont(fontName)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	local font = self.Fonts[fontName] or self.Fonts.GothamMedium;
 	self.FontName = fontName or "GothamMedium";
 
@@ -4176,7 +4250,128 @@ function NeverLose:SetFont(fontName)
 	end;
 end;
 
+-- Ready-made themes. Theme changes are semantic and are applied immediately.
+NeverLose.ThemePresets = {
+	Neverlose = {
+		Accent = Color3.fromRGB(97,65,145), Text = Color3.fromRGB(255,255,255),
+		Main = Color3.fromRGB(8,8,13), Section = Color3.fromRGB(20,22,27),
+		Element = Color3.fromRGB(26,28,36), Border = Color3.fromRGB(45,48,58),
+		Font = "GothamMedium",
+	},
+	Midnight = {
+		Accent = Color3.fromRGB(82,120,255), Text = Color3.fromRGB(245,248,255),
+		Main = Color3.fromRGB(7,9,15), Section = Color3.fromRGB(14,18,29),
+		Element = Color3.fromRGB(20,26,42), Border = Color3.fromRGB(42,52,76),
+		Font = "GothamMedium",
+	},
+	Crimson = {
+		Accent = Color3.fromRGB(235,72,90), Text = Color3.fromRGB(255,245,246),
+		Main = Color3.fromRGB(14,7,9), Section = Color3.fromRGB(29,14,17),
+		Element = Color3.fromRGB(40,19,23), Border = Color3.fromRGB(72,34,40),
+		Font = "GothamMedium",
+	},
+	Ocean = {
+		Accent = Color3.fromRGB(44,174,220), Text = Color3.fromRGB(240,250,255),
+		Main = Color3.fromRGB(5,11,15), Section = Color3.fromRGB(10,23,31),
+		Element = Color3.fromRGB(16,34,45), Border = Color3.fromRGB(30,64,79),
+		Font = "Roboto",
+	},
+	Emerald = {
+		Accent = Color3.fromRGB(55,205,132), Text = Color3.fromRGB(240,255,248),
+		Main = Color3.fromRGB(5,12,9), Section = Color3.fromRGB(10,25,18),
+		Element = Color3.fromRGB(16,39,28), Border = Color3.fromRGB(31,68,49),
+		Font = "GothamMedium",
+	},
+	Violet = {
+		Accent = Color3.fromRGB(166,104,255), Text = Color3.fromRGB(249,245,255),
+		Main = Color3.fromRGB(10,7,16), Section = Color3.fromRGB(22,14,34),
+		Element = Color3.fromRGB(32,21,49), Border = Color3.fromRGB(57,39,82),
+		Font = "GothamBold",
+	},
+	Monochrome = {
+		Accent = Color3.fromRGB(220,220,220), Text = Color3.fromRGB(250,250,250),
+		Main = Color3.fromRGB(10,10,10), Section = Color3.fromRGB(22,22,22),
+		Element = Color3.fromRGB(32,32,32), Border = Color3.fromRGB(65,65,65),
+		Font = "Roboto",
+	},
+}
+
+NeverLose.CurrentTheme = "Neverlose"
+
+function NeverLose:SetTheme(name, saveConfig)
+	local preset = self.ThemePresets[name]
+	if not preset then return false end
+	self.CurrentTheme = name
+	self.__ApplyingTheme = true
+	self:SetAccentColor(preset.Accent)
+	self:SetTextColor(preset.Text)
+	self:SetMainColor(preset.Main)
+	self:SetSectionColor(preset.Section)
+	self:SetElementColor(preset.Element)
+	self:SetBorderColor(preset.Border)
+	self:SetFont(preset.Font)
+	self.__ApplyingTheme = false
+	if self.__ThemeSelector and self.__ThemeSelector.SetValue then
+		pcall(function() self.__ThemeSelector:SetValue(name) end)
+	end
+	if saveConfig and self.__ConfigLib and self.__ConfigLib.SaveActiveConfig then
+		pcall(function() self.__ConfigLib:SaveActiveConfig() end)
+	end
+	return true
+end
+
+function NeverLose:_MarkCustomTheme()
+	if self.__ApplyingTheme then return end
+	self.CurrentTheme = "Custom"
+	if self.__ThemeSelector and self.__ThemeSelector.SetValue then
+		pcall(function() self.__ThemeSelector:SetValue("Custom") end)
+	end
+end
+
+function NeverLose:GetThemeData()
+	return {
+		Name = self.CurrentTheme or "Neverlose",
+		Accent = self.AccentColor:ToHex(),
+		Text = self.TextColor:ToHex(),
+		Main = self.MainColor:ToHex(),
+		Section = self.SectionColor:ToHex(),
+		Element = self.ElementColor:ToHex(),
+		Border = self.BorderColor:ToHex(),
+		Font = self.FontName or "GothamMedium",
+	}
+end
+
+function NeverLose:ApplyThemeData(data, saveConfig)
+	if type(data) ~= "table" then return false end
+	local function c(v, fallback)
+		local ok, result = pcall(function()
+			if typeof(v) == "Color3" then return v end
+			if type(v) == "string" then return Color3.fromHex(v:gsub("#","")) end
+			return fallback
+		end)
+		return ok and result or fallback
+	end
+	self.CurrentTheme = data.Name or "Custom"
+	self.__ApplyingTheme = true
+	self:SetAccentColor(c(data.Accent, self.AccentColor))
+	self:SetTextColor(c(data.Text, self.TextColor))
+	self:SetMainColor(c(data.Main, self.MainColor))
+	self:SetSectionColor(c(data.Section, self.SectionColor))
+	self:SetElementColor(c(data.Element, self.ElementColor))
+	self:SetBorderColor(c(data.Border, self.BorderColor))
+	self:SetFont(data.Font or self.FontName or "GothamMedium")
+	self.__ApplyingTheme = false
+	if self.__ThemeSelector and self.__ThemeSelector.SetValue then
+		pcall(function() self.__ThemeSelector:SetValue(self.CurrentTheme) end)
+	end
+	if saveConfig and self.__ConfigLib and self.__ConfigLib.SaveActiveConfig then
+		pcall(function() self.__ConfigLib:SaveActiveConfig() end)
+	end
+	return true
+end
+
 function NeverLose:SetTextColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
 
 	self.__LastTextColor = self.TextColor;
@@ -4207,6 +4402,7 @@ function NeverLose:SetSecondaryTextColor(color)
 end;
 
 function NeverLose:SetAccentColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end
 
 	local previous = self.AccentColor
@@ -4346,6 +4542,7 @@ function NeverLose:SetBackgroundImage(value, transparency, scaleType)
 end;
 
 function NeverLose:SetMainColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
 	local previous = self.MainColor;
 	self.MainColor = color;
@@ -4361,6 +4558,7 @@ function NeverLose:SetMainColor(color)
 end;
 
 function NeverLose:SetSectionColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
 	local previous = self.SectionColor;
 	self.SectionColor = color;
@@ -4376,6 +4574,7 @@ function NeverLose:SetSectionColor(color)
 end;
 
 function NeverLose:SetElementColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
 	local previous = self.ElementColor;
 	self.ElementColor = color;
@@ -4391,6 +4590,7 @@ function NeverLose:SetElementColor(color)
 end;
 
 function NeverLose:SetBorderColor(color)
+	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
 	local previous = self.BorderColor;
 	self.BorderColor = color;
@@ -6233,6 +6433,7 @@ function Window:AddTab(Config)
 				end
 			end
 			
+			table.insert(ikc, { Idx = "__NeverLoseTheme", Value = NeverLose:GetThemeData() })
 			local ok, json = pcall(function() return HttpService:JSONEncode(ikc) end)
 			if ok and json then
 				return NeverLose.Base64Encode(Encryption.new(json));
@@ -6250,7 +6451,14 @@ function Window:AddTab(Config)
 			if not ok2 or type(coded) ~= "table" then return end
 
 			for _, v in ipairs(coded) do
-				if type(v) == "table" and v.Idx and NeverLose.Flags[v.Idx] then
+				if type(v) == "table" and v.Idx == "__NeverLoseTheme" and type(v.Value) == "table" then
+					pcall(function()
+						NeverLose:ApplyThemeData(v.Value, false)
+						if NeverLose.__ThemeSelector and NeverLose.__ThemeSelector.SetValue then
+							NeverLose.__ThemeSelector:SetValue(v.Value.Name or "Custom")
+						end
+					end)
+				elseif type(v) == "table" and v.Idx and NeverLose.Flags[v.Idx] then
 					pcall(function()
 						NeverLose.Flags[v.Idx]:SetValue(v.Value)
 					end)
@@ -6505,7 +6713,7 @@ function Window:AddTab(Config)
 			table.clear(ConfigList);
 		end;
 		
-		task.delay(1.5, function()
+		task.delay(0.25, function()
 			local path = Window.ConfigFolder..'/'..(ConfigLib.SelectedConfig or "Default");
 			if isfile(path) then
 				local ok, data = pcall(readfile, path);
@@ -6520,7 +6728,7 @@ function Window:AddTab(Config)
 
 			
 			task.spawn(function()
-				while true do 
+				while not NeverLose.__Unloaded do 
 					task.wait(2);
 					pcall(function()
 						ConfigLib:SaveActiveConfig();
@@ -6680,70 +6888,37 @@ function Window:AddTab(Config)
 	UserSettings:AddLabel("Font"):AddDropdown({
 		Default = NeverLose.FontName,
 		Values = {
-			"Gotham",
-			"GothamMedium",
-			"GothamBold",
-			"SourceSans",
-			"SourceSansBold",
-			"Roboto",
-			"RobotoMono",
-			"Arial",
-			"ArialBold",
+			"Gotham", "GothamMedium", "GothamBold", "GothamBlack", "GothamSemibold",
+			"SourceSans", "SourceSansBold", "SourceSansLight", "SourceSansSemibold", "SourceSansItalic",
+			"Roboto", "RobotoBold", "RobotoCondensed", "RobotoMono",
+			"Arial", "ArialBold", "BuilderSans", "BuilderSansMedium",
+			"BuilderSansBold", "BuilderSansExtraBold", "Code", "Fantasy", "Arcade",
+			"Highway", "Legacy",
 		},
 		Callback = function(v)
-			Window:SetFont(v);
+			Window:SetFont(v)
+			if NeverLose.__ConfigLib then
+				pcall(function() NeverLose.__ConfigLib:SaveActiveConfig() end)
+			end
 		end,
 	});
 
-	local BackgroundInput = UserSettings:AddLabel("Background Image");
-	local BackgroundRequestId = 0;
-	local BackgroundValue = BackgroundInput:AddTextInput({
-		Default = "",
-		Placeholder = "Asset ID / image URL / Discord CDN",
-		Size = 150,
+	NeverLose.__ThemeSelector = UserSettings:AddLabel("Theme"):AddDropdown({
+		Default = NeverLose.CurrentTheme,
+		Values = {"Neverlose", "Midnight", "Crimson", "Ocean", "Emerald", "Violet", "Monochrome", "Custom"},
 		Callback = function(v)
-			BackgroundRequestId += 1;
-			local requestId = BackgroundRequestId;
-
-			-- Asset IDs can be applied immediately.
-			if typeof(v) == "number" or (typeof(v) == "string" and tonumber(v)) then
-				Window:SetBackgroundImage(v);
-				return;
-			end;
-
-			-- Do not HTTP-request on every keystroke while the user is typing.
-			task.delay(0.35, function()
-				if requestId == BackgroundRequestId then
-					Window:SetBackgroundImage(v);
-				end;
-			end);
+			if NeverLose.__ApplyingTheme then return end
+			if v == "Custom" then
+				NeverLose.CurrentTheme = "Custom"
+				if NeverLose.__ConfigLib then
+					pcall(function() NeverLose.__ConfigLib:SaveActiveConfig() end)
+				end
+			else
+				Window:SetTheme(v, true)
+			end
 		end,
 	});
 
-	BackgroundInput:AddSlider({
-		Min = 0,
-		Max = 100,
-		Default = 55,
-		Type = "%",
-		Size = 95,
-		Callback = function(v)
-			Window:SetBackgroundImage(BackgroundValue:GetValue(), v / 100);
-		end,
-	});
-
-	UserSettings:AddLabel("Background"):AddDropdown({
-		Default = "Crop",
-		Values = {"Crop", "Fit", "Stretch", "Tile"},
-		Callback = function(v)
-			local modes = {
-				Crop = Enum.ScaleType.Crop,
-				Fit = Enum.ScaleType.Fit,
-				Stretch = Enum.ScaleType.Stretch,
-				Tile = Enum.ScaleType.Tile,
-			};
-			Window:SetBackgroundImage(BackgroundValue:GetValue(), nil, modes[v]);
-		end,
-	});
 
 	function Window:ResetGUITheme()
 		self:SetAccentColor(Color3.fromRGB(97, 65, 145));
@@ -6753,28 +6928,6 @@ function Window:AddTab(Config)
 		self:SetElementColor(Color3.fromRGB(26, 28, 36));
 		self:SetBorderColor(Color3.fromRGB(45, 48, 58));
 		self:SetFont("GothamMedium");
-	end;
-
-	function Window:ClearBackgroundImage()
-		self:SetBackgroundImage("");
-	end;
-
-	function Window:GetBackgroundImage()
-		return self.BackgroundImage or "";
-	end;
-
-	function Window:SetBackgroundTransparency(value)
-		self:SetBackgroundImage(self.BackgroundImageSource or "", value);
-	end;
-
-	function Window:SetBackgroundScaleType(value)
-		local modes = {
-			Crop = Enum.ScaleType.Crop,
-			Fit = Enum.ScaleType.Fit,
-			Stretch = Enum.ScaleType.Stretch,
-			Tile = Enum.ScaleType.Tile,
-		};
-		self:SetBackgroundImage(self.BackgroundImageSource or "", nil, modes[value] or Enum.ScaleType.Crop);
 	end;
 
 	function Window:SetAccount(Config)
@@ -6849,10 +7002,6 @@ function Window:AddTab(Config)
 
 	function Window:SetFont(fontName)
 		NeverLose:SetFont(fontName);
-	end;
-
-	function Window:SetBackgroundImage(value, transparency, scaleType)
-		NeverLose:SetBackgroundImage(value, transparency, scaleType);
 	end;
 
 	Window:SetAccount();
@@ -7657,15 +7806,26 @@ function NeverLose:CreateIndicator()
 end;
 
 function NeverLose:Unload()
-	if not NeverLose.UnloadEnabled then
-		return;	
+	if not NeverLose.UnloadEnabled or NeverLose.__Unloaded then
+		return;
 	end;
+	NeverLose.__Unloaded = true;
 
-	NeverLose.ScreenGui:Destroy();
+	for i,v in next, NeverLose.GlobalSignals do
+		pcall(function() v:Disconnect() end)
+	end
+	table.clear(NeverLose.GlobalSignals)
 
-	for i,v in next , NeverLose.GlobalSignals do
-		pcall(v.Disconnect,v)
-	end;
+	if NeverLose.ScreenGui then
+		pcall(function() NeverLose.ScreenGui:Destroy() end)
+	end
+	if NeverLose.GlobalSurfaceGui then
+		pcall(function() NeverLose.GlobalSurfaceGui:Destroy() end)
+	end
+
+	-- Stop library-owned loops/connections that may have been registered elsewhere.
+	NeverLose.Flags = {}
+	NeverLose.IsMosueOverOtherFrame = false
 end;
 
 return NeverLose;
