@@ -2313,25 +2313,29 @@ end;
 		Signal:Connect(Window.SetRender);
 
 		local bthg = NeverLose:CreateInput(Option , LPH_NO_VIRTUALIZE(function()
+			local newValue = not Window.Signal:GetValue();
+
 			if reciveSignal then
 				reciveSignal:Disconnect();
-				reciveSignal = nil;	
+				reciveSignal = nil;
 			end;
 
-			Window.Signal:SetValue(true);
+			Window.Signal:SetValue(newValue);
 
-			reciveSignal = UserInputService.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					if not NeverLose:IsMouseOverFrame(Window.Root) and not NeverLose:IsMouseOverFrame(Option) then
-						if reciveSignal then
-							reciveSignal:Disconnect();
-							reciveSignal = nil;	
-						end;
+			if newValue then
+				reciveSignal = UserInputService.InputBegan:Connect(function(Input)
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+						if not NeverLose:IsMouseOverFrame(Window.Root) and not NeverLose:IsMouseOverFrame(Option) then
+							if reciveSignal then
+								reciveSignal:Disconnect();
+								reciveSignal = nil;
+							end;
 
-						Window.Signal:SetValue(false);
-					end
-				end
-			end)
+							Window.Signal:SetValue(false);
+						end
+					end;
+				end)
+			end;
 		end));
 
 		NeverLose:AddSignal(bthg.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
@@ -2417,25 +2421,29 @@ end;
 
 		local signal;
 		NeverLose:CreateInput(ColorPicker , LPH_NO_VIRTUALIZE(function()
+			local newValue = not Signal:GetValue();
+
 			if signal then
 				signal:Disconnect();
 				signal = nil;
 			end;
 
-			BackendM.SetRender(true);
+			Signal:SetValue(newValue);
 
-			signal = UserInputService.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					if not NeverLose:IsMouseOverFrame(ColorPicker) and not NeverLose:IsMouseOverFrame(BackendM.Root) then
-						if signal then
-							signal:Disconnect();
-							signal = nil;
+			if newValue then
+				signal = UserInputService.InputBegan:Connect(function(Input)
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+						if not NeverLose:IsMouseOverFrame(ColorPicker) and not NeverLose:IsMouseOverFrame(BackendM.Root) then
+							if signal then
+								signal:Disconnect();
+								signal = nil;
+							end;
+
+							Signal:SetValue(false);
 						end;
-
-						BackendM.SetRender(false);
 					end;
-				end;
-			end)
+				end)
+			end;
 		end));
 
 		ColorPickerLib.SetRender = LPH_NO_VIRTUALIZE(function(value)
@@ -3001,27 +3009,31 @@ end;
 
 		local SecureSignal;
 		NeverLose:CreateInput(Dropdown , LPH_NO_VIRTUALIZE(function()
+			local newValue = not DropdownLib.OpenSignal:GetValue();
+
 			if SecureSignal then
 				SecureSignal:Disconnect();
 				SecureSignal = nil;
 			end;
 
-			DropdownLib.SetFrameRender(true);
-			NeverLose.IsMosueOverOtherFrame = true;
+			DropdownLib.SetFrameRender(newValue);
+			NeverLose.IsMosueOverOtherFrame = newValue;
 
-			SecureSignal = UserInputService.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					if not NeverLose:IsMouseOverFrame(DropdownLib.BlockRoot) and not NeverLose:IsMouseOverFrame(Dropdown) then
-						if SecureSignal then
-							SecureSignal:Disconnect();
-							SecureSignal = nil;
+			if newValue then
+				SecureSignal = UserInputService.InputBegan:Connect(function(Input)
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+						if not NeverLose:IsMouseOverFrame(DropdownLib.BlockRoot) and not NeverLose:IsMouseOverFrame(Dropdown) then
+							if SecureSignal then
+								SecureSignal:Disconnect();
+								SecureSignal = nil;
+							end;
+
+							NeverLose.IsMosueOverOtherFrame = false;
+							DropdownLib.SetFrameRender(false);
 						end;
-
-						NeverLose.IsMosueOverOtherFrame = false;
-						DropdownLib.SetFrameRender(false);
-					end;
-				end
-			end)
+					end
+				end)
+			end;
 		end))
 
 		DropdownLib.IsMatch = LPH_NO_VIRTUALIZE(function(v1)
@@ -6071,24 +6083,29 @@ function Window:AddTab(Config)
 		ConfigLib:RefreshConfig();
 
 		OpenButton.MouseButton1Click:Connect(LPH_NO_VIRTUALIZE(function()
+			local newValue = not ConfigSignal:GetValue();
+
 			if ConfigLib.UnsafeThread then
 				ConfigLib.UnsafeThread:Disconnect();
 				ConfigLib.UnsafeThread = nil;
 			end;
 
-			ConfigSignal:SetValue(true);
+			ConfigSignal:SetValue(newValue);
 
-			ConfigLib.UnsafeThread = UserInputService.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					if not NeverLose:IsMouseOverFrame(ConfigMenu) then
-						if ConfigLib.UnsafeThread then
-							ConfigLib.UnsafeThread:Disconnect();
-							ConfigLib.UnsafeThread = nil;
+			if newValue then
+				ConfigLib.UnsafeThread = UserInputService.InputBegan:Connect(function(Input)
+					if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+						-- The trigger itself is not an outside click.
+						if not NeverLose:IsMouseOverFrame(ConfigMenu) and not NeverLose:IsMouseOverFrame(OpenButton) then
+							if ConfigLib.UnsafeThread then
+								ConfigLib.UnsafeThread:Disconnect();
+								ConfigLib.UnsafeThread = nil;
+							end;
+							ConfigSignal:SetValue(false);
 						end;
-						ConfigSignal:SetValue(false);
 					end;
-				end;
-			end)
+				end)
+			end;
 		end));
 
 		return ConfigLib;
@@ -6099,25 +6116,29 @@ function Window:AddTab(Config)
 	local UserSettings = NeverLose:CreateOptionWindow(BottomFrame , BottomFrame.ZIndex + 13);
 	local reciveSignal;
 	NeverLose:CreateInput(BottomFrame , LPH_NO_VIRTUALIZE(function()
+		local newValue = not UserSettings.Signal:GetValue();
+
 		if reciveSignal then
 			reciveSignal:Disconnect();
-			reciveSignal = nil;	
+			reciveSignal = nil;
 		end;
 
-		UserSettings.Signal:SetValue(true);
+		UserSettings.Signal:SetValue(newValue);
 
-		reciveSignal = UserInputService.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-				if not NeverLose:IsMouseOverFrame(UserSettings.Root) and not NeverLose:IsMouseOverFrame(BottomFrame) and not NeverLose.IsMosueOverOtherFrame then
-					if reciveSignal then
-						reciveSignal:Disconnect();
-						reciveSignal = nil;	
-					end;
+		if newValue then
+			reciveSignal = UserInputService.InputBegan:Connect(function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+					if not NeverLose:IsMouseOverFrame(UserSettings.Root) and not NeverLose:IsMouseOverFrame(BottomFrame) and not NeverLose.IsMosueOverOtherFrame then
+						if reciveSignal then
+							reciveSignal:Disconnect();
+							reciveSignal = nil;
+						end;
 
-					UserSettings.Signal:SetValue(false);
-				end
-			end
-		end);
+						UserSettings.Signal:SetValue(false);
+					end
+				end;
+			end);
+		end;
 	end))
 
 	Window.UserSettings = UserSettings;
