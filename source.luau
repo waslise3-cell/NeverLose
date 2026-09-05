@@ -145,47 +145,70 @@ isfile = isfile or getgenv().isfile;
 
 local NeverLose = {};
 
--- Lucide icon renderer.
--- Public Icon= values are now Lucide names instead of Roblox BuilderIcons.
--- Lucide.Lua rasterizes the requested SVG to a Roblox-compatible image asset.
-local NeverLoseLucide = nil;
-pcall(function()
-	NeverLoseLucide = loadstring(game:HttpGet(
-		"https://raw.githubusercontent.com/xxpwnxxx420lord/Lucide.Lua/refs/heads/main/lucide.lua",
-		true
-	))();
-end);
+-- Fast Lucide icons.
+-- The previous version downloaded Lucide.Lua + 9 icon chunks at startup.
+-- These are pre-uploaded Lucide Roblox assets, so the UI does not wait for
+-- the full Lucide rasterizer before appearing.
+local NeverLoseLucide = {
+	["activity"] = "rbxassetid://10709752035",
+	["crosshair"] = "rbxassetid://10709818534",
+	["mouse"] = "rbxassetid://10734898592",
+	["message-circle"] = "rbxassetid://10734888000",
+	["target"] = "rbxassetid://10734977012",
+	["settings"] = "rbxassetid://10734950309",
+	["settings-2"] = "rbxassetid://10734950020",
+	["sliders"] = "rbxassetid://10734963400",
+	["sliders-horizontal"] = "rbxassetid://10734963191",
+	["folder"] = "rbxassetid://10723387563",
+	["save"] = "rbxassetid://10734941499",
+	["search"] = "rbxassetid://10734943674",
+	["monitor"] = "rbxassetid://10734896881",
+	["eye"] = "rbxassetid://10723346959",
+	["eye-off"] = "rbxassetid://10723346871",
+	["shield"] = "rbxassetid://10734951847",
+	["shield-check"] = "rbxassetid://10734951367",
+	["flame"] = "rbxassetid://10723376114",
+	["gamepad"] = "rbxassetid://10723395457",
+	["gamepad-2"] = "rbxassetid://10723395215",
+	["user"] = "rbxassetid://10747373176",
+	["users"] = "rbxassetid://10747373426",
+	["message-square"] = "rbxassetid://10734888228",
+	["alert-triangle"] = "rbxassetid://10709753149",
+	["check"] = "rbxassetid://10709752301",
+	["x"] = "rbxassetid://10747384394",
+	["minus"] = "rbxassetid://10734896206",
+	["more-horizontal"] = "rbxassetid://10734897250",
+	["more-vertical"] = "rbxassetid://10734897387",
+	["discord"] = "rbxassetid://10709825000",
+}
 
-NeverLose.Lucide = NeverLoseLucide;
+NeverLose.Lucide = NeverLoseLucide
 
 function NeverLose:CreateLucideIcon(parent, iconName, size, color, zIndex)
-	local image = Instance.new("ImageLabel");
-	image.Name = self.RandomString and self:RandomString() or "LucideIcon";
-	image.Parent = parent;
-	image.BackgroundTransparency = 1;
-	image.BorderSizePixel = 0;
-	image.Size = UDim2.fromOffset(size or 18, size or 18);
-	image.ZIndex = zIndex or 1;
-	image.ScaleType = Enum.ScaleType.Fit;
-	image.ImageColor3 = color or Color3.fromRGB(255, 255, 255);
-	image.ImageTransparency = 0;
+	local image = Instance.new("ImageLabel")
+	image.Name = self.RandomString and self:RandomString() or "LucideIcon"
+	image.Parent = parent
+	image.BackgroundTransparency = 1
+	image.BorderSizePixel = 0
+	image.Size = UDim2.fromOffset(size or 18, size or 18)
+	image.ZIndex = zIndex or 1
+	image.ScaleType = Enum.ScaleType.Fit
+	image.ImageColor3 = color or Color3.fromRGB(255, 255, 255)
+	image.ImageTransparency = 0
 
-	if NeverLoseLucide and iconName and iconName ~= "" then
-		local ok, asset = pcall(function()
-			return NeverLoseLucide:geticon(iconName, {
-				size = math.max(size or 18, 16),
-				color = "#ffffff",
-				stroke_width = 1.8,
-			});
-		end);
+	local asset = NeverLoseLucide[iconName]
+	if asset then
+		image.Image = asset
+	elseif typeof(iconName) == "string" then
+		if tonumber(iconName) then
+			image.Image = "rbxassetid://" .. iconName
+		elseif iconName:match("^rbxasset") or iconName:match("^rbxthumb") then
+			image.Image = iconName
+		end
+	end
 
-		if ok and asset then
-			image.Image = asset;
-		end;
-	end;
-
-	return image;
-end;
+	return image
+end
 
 NeverLose.BuiltInRegular = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Regular,Enum.FontStyle.Normal);
 NeverLose.BuiltInBold = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Bold,Enum.FontStyle.Normal);
@@ -240,42 +263,50 @@ NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
 NeverLose.IsMosueOverOtherFrame = false;
 NeverLose.GlobalLogo = "";
+NeverLose.LogoReady = false;
 NeverLose.ImageColorMapping = "rbxassetid://4155801252";
 
 if getcustomasset then
-	local link = "https://github.com/waslise3-cell/NeverLose/blob/main/assets/%s?raw=true";
-	local dir = 'assetsss';
+	local link = "https://raw.githubusercontent.com/waslise3-cell/NeverLose/main/assets/%s";
+	local dir = "assetsss";
 
 	if not isfolder(dir) then
 		makefolder(dir);
 	end;
 
-	-- [[ ЗАКОММЕНТИРОВАНО: Загрузка логотипа
-	pcall(function()
-		if not isfile(dir..'/'..'logo.png') then
-			local byte = game:HttpGet(string.format(link,'logo.png'));
+	-- Logo is loaded in the background so it does not delay UI startup.
+	task.spawn(function()
+		pcall(function()
+			local logoPath = dir .. "/logo.png";
 
-			writefile(dir..'/'..'logo.png' , byte);
-			task.wait();
-		end;
+			if not isfile(logoPath) then
+				local byte = game:HttpGet(string.format(link, "logo.png"));
+				writefile(logoPath, byte);
+			end;
 
-		if isfile(dir..'/'..'logo.png') then
-			NeverLose.GlobalLogo = getcustomasset(dir..'/'..'logo.png')
-		end;
+			if isfile(logoPath) then
+				NeverLose.GlobalLogo = getcustomasset(logoPath);
+				NeverLose.LogoReady = true;
+
+				if NeverLose.__WatermarkLogo then
+					NeverLose.__WatermarkLogo.Image = NeverLose.GlobalLogo;
+					NeverLose.__WatermarkLogo.Visible = true;
+				end;
+			end;
+		end);
 	end);
-	-- ]]
 
-	-- Градиент цвета оставляем активным, чтобы работал ColorPicker
+	-- Keep the color-picker gradient cached.
 	pcall(function()
-		if not isfile(dir..'/'..'saturation_value_gradient.png') then
-			local byte = game:HttpGet(string.format(link,'saturation_value_gradient.png'));
+		local gradientPath = dir .. "/saturation_value_gradient.png";
 
-			writefile(dir..'/'..'saturation_value_gradient.png' , byte);
-			task.wait();
+		if not isfile(gradientPath) then
+			local byte = game:HttpGet(string.format(link, "saturation_value_gradient.png"));
+			writefile(gradientPath, byte);
 		end;
 
-		if isfile(dir..'/'..'saturation_value_gradient.png') then
-			NeverLose.ImageColorMapping = getcustomasset(dir..'/'..'saturation_value_gradient.png')
+		if isfile(gradientPath) then
+			NeverLose.ImageColorMapping = getcustomasset(gradientPath);
 		end;
 	end);
 end;
@@ -3770,16 +3801,14 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		end;
 
 		function Button:SetIcon(t)
-			local ok, asset = pcall(function()
-				return NeverLoseLucide and NeverLoseLucide:geticon(t, {
-					size = 18,
-					color = "#ffffff",
-					stroke_width = 1.8,
-				});
-			end);
-			if ok and asset then
-				Icon.Image = asset;
-			end;
+			local asset = NeverLoseLucide[t]
+			if asset then
+				Icon.Image = asset
+			elseif typeof(t) == "string" and tonumber(t) then
+				Icon.Image = "rbxassetid://" .. t
+			elseif typeof(t) == "string" and (t:match("^rbxasset") or t:match("^rbxthumb")) then
+				Icon.Image = t
+			end
 		end;
 
 		local bth = NeverLose:CreateInput(ButtonFrame , LPH_NO_VIRTUALIZE(function()
@@ -6264,6 +6293,27 @@ function Window:AddTab(Config)
 		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
 
+		local WatermarkLogoFrame = Instance.new("Frame");
+		WatermarkLogoFrame.Name = NeverLose.RandomString();
+		WatermarkLogoFrame.BackgroundTransparency = 1;
+		WatermarkLogoFrame.BorderSizePixel = 0;
+		WatermarkLogoFrame.Size = UDim2.fromOffset(30, 30);
+		WatermarkLogoFrame.LayoutOrder = 0;
+		WatermarkLogoFrame.Parent = Watermark;
+
+		local WatermarkLogo = Instance.new("ImageLabel");
+		WatermarkLogo.Name = NeverLose.RandomString();
+		WatermarkLogo.BackgroundTransparency = 1;
+		WatermarkLogo.BorderSizePixel = 0;
+		WatermarkLogo.Size = UDim2.fromOffset(24, 24);
+		WatermarkLogo.Position = UDim2.fromOffset(3, 3);
+		WatermarkLogo.ScaleType = Enum.ScaleType.Fit;
+		WatermarkLogo.Image = NeverLose.GlobalLogo;
+		WatermarkLogo.Visible = NeverLose.LogoReady;
+		WatermarkLogo.ZIndex = 18;
+		WatermarkLogo.Parent = Watermark;
+		NeverLose.__WatermarkLogo = WatermarkLogo;
+
 		local empty_space = Instance.new('Frame');
 
 		empty_space.Size = UDim2.fromOffset(15,0);
@@ -6396,7 +6446,7 @@ function Window:AddTab(Config)
 					})
 
 					NeverLose.PlayAnimate(Icon,SlowyTween , {
-						TextTransparency = 0.250
+						ImageTransparency = 0.250
 					})
 				else
 
@@ -6405,7 +6455,7 @@ function Window:AddTab(Config)
 					})
 
 					NeverLose.PlayAnimate(Icon,SlowyTween , {
-						TextTransparency = 1
+						ImageTransparency = 1
 					})
 				end;
 			end);
