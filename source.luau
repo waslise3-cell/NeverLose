@@ -4018,8 +4018,11 @@ function NeverLose:CreateWindow(Config)
 	TopLogoDecorator.Position = UDim2.new(0.5, 0, 0, 60) 
     Window.TopLogoDecorator = TopLogoDecorator
 	
+	-- FIX: the library was rendering the same logo again above the window.
+	-- Keep the instance/reference for compatibility, but disable its visual rendering.
 	TopLogoDecorator.ZIndex = WindowFrame.ZIndex + 1
-	TopLogoDecorator.ImageTransparency = 0
+	TopLogoDecorator.Visible = false
+	TopLogoDecorator.ImageTransparency = 1
 
 	Window.Signal:Connect(function(visible)
 		NeverLose.PlayAnimate(TopLogoDecorator, SlowyTween, {
