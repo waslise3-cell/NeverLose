@@ -1567,7 +1567,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	RGBLabel.ZIndex = ZIndex + 127
 	RGBLabel.Font = Enum.Font.GothamBold
 	RGBLabel.Text = "#FFFFFF"
-	RGBLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	RGBLabel.TextColor3 = NeverLose.TextColor
 	RGBLabel.TextSize = 12.000
 	RGBLabel.TextTransparency = 0.400
 	RGBLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -2049,7 +2049,7 @@ end;
 		ValueLabel.ZIndex = ZINdex + 14
 		ValueLabel.Font = Enum.Font.GothamMedium
 		ValueLabel.Text = tostring(Config.Default)..tostring(Config.Type);
-		ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		ValueLabel.TextColor3 = NeverLose.TextColor
 		ValueLabel.TextSize = 10.000
 		ValueLabel.ClearTextOnFocus = false;
 		ValueLabel.TextTransparency = 0.350
@@ -2306,7 +2306,7 @@ end;
 		Icon.ZIndex = ZINdex + 14
 		Icon.FontFace = NeverLose.BuiltInBold
 		Icon.Text = (GearIcon == 1 and 'gear') or (GearIcon == 2 and 'chevron-large-right') or "three-dots-horizontal";
-		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		Icon.TextColor3 = NeverLose.SecondaryTextColor
 		Icon.TextSize = 16.000
 		Icon.TextTransparency = 0.400
 		Icon.TextWrapped = true
@@ -2553,7 +2553,7 @@ end;
 		ValueLabel.ZIndex = ZINdex + 14
 		ValueLabel.Font = Enum.Font.GothamMedium
 		ValueLabel.Text = NeverLose:KeyCodeToStr(Config.Default or "None")
-		ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		ValueLabel.TextColor3 = NeverLose.TextColor
 		ValueLabel.TextSize = 10.000
 		ValueLabel.TextTransparency = 0.500
 
@@ -2708,7 +2708,7 @@ end;
 		TextBox.Font = Enum.Font.GothamMedium
 		TextBox.PlaceholderText = Config.Placeholder
 		TextBox.Text = tostring(Config.Default)
-		TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TextBox.TextColor3 = NeverLose.TextColor
 		TextBox.TextSize = 11.000
 		TextBox.TextTransparency = 0.350
 		TextBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -2817,7 +2817,7 @@ end;
 		DropdownIcon.ZIndex = ZINdex + 14
 		DropdownIcon.FontFace = NeverLose.BuiltInBold
 		DropdownIcon.Text = "chevron-small-down"
-		DropdownIcon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		DropdownIcon.TextColor3 = NeverLose.SecondaryTextColor
 		DropdownIcon.TextSize = 16.000
 		DropdownIcon.TextTransparency = 0.250
 		DropdownIcon.TextWrapped = true
@@ -2842,7 +2842,7 @@ end;
 		BasedLabel.ZIndex = ZINdex + 14
 		BasedLabel.Font = Enum.Font.GothamMedium
 		BasedLabel.Text = NeverLose.ParseDropdown(Config.Default);
-		BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		BasedLabel.TextColor3 = NeverLose.TextColor
 		BasedLabel.TextSize = 12.000
 		BasedLabel.TextTransparency = 0.5
 		BasedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3099,7 +3099,7 @@ end;
 				ItemLabel.ZIndex = ZINdex + 1258
 				ItemLabel.Font = Enum.Font.GothamMedium
 				ItemLabel.Text = tostring(Value);
-				ItemLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+				ItemLabel.TextColor3 = NeverLose.TextColor
 				ItemLabel.TextSize = 13.000
 				ItemLabel.TextTransparency = 0.200
 				ItemLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3126,7 +3126,7 @@ end;
 					Icon.ZIndex = ZINdex + 1259
 					Icon.FontFace = NeverLose.BuiltInBold;
 					Icon.Text = "check"
-					Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+					Icon.TextColor3 = NeverLose.SecondaryTextColor
 					Icon.TextSize = 18.000
 					Icon.TextTransparency = 1
 					Icon.TextWrapped = true;
@@ -3386,7 +3386,7 @@ function NeverLose:CreateToolTips(Container: Frame , Name: string , Content: str
 	TooltipName.ZIndex = 132
 	TooltipName.Font = Enum.Font.GothamBold
 	TooltipName.Text = Name
-	TooltipName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TooltipName.TextColor3 = NeverLose.TextColor
 	TooltipName.TextSize = 15.000
 	TooltipName.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -3401,7 +3401,7 @@ function NeverLose:CreateToolTips(Container: Frame , Name: string , Content: str
 	TooltipContent.ZIndex = 132
 	TooltipContent.Font = Enum.Font.GothamBold
 	TooltipContent.Text = Content
-	TooltipContent.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TooltipContent.TextColor3 = NeverLose.TextColor
 	TooltipContent.TextSize = 12.000
 	TooltipContent.TextTransparency = 0.650
 	TooltipContent.TextXAlignment = Enum.TextXAlignment.Left
@@ -3539,7 +3539,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
 		BasedLabel.Text = Name
-		BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		BasedLabel.TextColor3 = NeverLose.TextColor
 		BasedLabel.TextSize = 13.000
 		BasedLabel.TextTransparency = 0.35
 		BasedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3706,7 +3706,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
 		BasedLabel.Text = Config.Name;
-		BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		BasedLabel.TextColor3 = NeverLose.TextColor
 		BasedLabel.TextSize = 13.000
 		BasedLabel.TextTransparency = 0.200
 		BasedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3736,7 +3736,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		Icon.ZIndex = LayerIndex + 9
 		Icon.FontFace = NeverLose.BuiltInBold
 		Icon.Text = Config.Icon
-		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		Icon.TextColor3 = NeverLose.SecondaryTextColor
 		Icon.TextSize = 16.000
 		Icon.TextTransparency = 0.250
 		Icon.TextWrapped = true
@@ -3840,7 +3840,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserLabel.ZIndex = LayerIndex + 9
 		UserLabel.Font = Enum.Font.GothamMedium
 		UserLabel.Text = Name or 'User'
-		UserLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		UserLabel.TextColor3 = NeverLose.TextColor
 		UserLabel.TextSize = 13.000
 		UserLabel.TextTransparency = 0.200
 		UserLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3884,7 +3884,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UserStatusLabel.ZIndex = LayerIndex + 9
 		UserStatusLabel.Font = Enum.Font.GothamMedium
 		UserStatusLabel.Text = Expires or 'Never'
-		UserStatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		UserStatusLabel.TextColor3 = NeverLose.TextColor
 		UserStatusLabel.TextSize = 13.000
 		UserStatusLabel.TextTransparency = 0.200
 		UserStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -3952,6 +3952,9 @@ end;
 -- ============================================================
 -- Runtime UI customization
 -- ============================================================
+-- Theme colors are applied by semantic role, not by comparing only
+-- against the previous value. This makes repeated color changes work
+-- across every already-created control and controls created later.
 
 NeverLose.Fonts = {
 	Gotham = Enum.Font.Gotham,
@@ -3966,9 +3969,97 @@ NeverLose.Fonts = {
 	BuilderIcons = NeverLose.BuiltInRegular,
 };
 
+NeverLose.Theme = {
+	AccentSources = {
+		Color3.fromRGB(97, 65, 145),
+	},
+
+	TextSources = {
+		Color3.fromRGB(255, 255, 255),
+	},
+
+	SecondaryTextSources = {
+		Color3.fromRGB(186, 186, 186),
+		Color3.fromRGB(223, 223, 223),
+		Color3.fromRGB(200, 200, 200),
+		Color3.fromRGB(150, 150, 150),
+	},
+};
+
+local function ThemeColorEquals(a, b)
+	return typeof(a) == "Color3" and typeof(b) == "Color3"
+		and a.R == b.R and a.G == b.G and a.B == b.B;
+end;
+
+local function ThemeColorIn(list, value)
+	for _, color in ipairs(list) do
+		if ThemeColorEquals(color, value) then
+			return true;
+		end;
+	end;
+	return false;
+end;
+
 function NeverLose:_IsBuilderIconLabel(obj)
-	return obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")
-		and (obj.FontFace == NeverLose.BuiltInRegular or obj.FontFace == NeverLose.BuiltInBold);
+	if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
+		return false;
+	end;
+
+	local ok, result = pcall(function()
+		return obj.FontFace == NeverLose.BuiltInRegular
+			or obj.FontFace == NeverLose.BuiltInBold;
+	end);
+
+	return ok and result == true;
+end;
+
+function NeverLose:_ApplyThemeToObject(obj)
+	if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+		if not self:_IsBuilderIconLabel(obj) then
+			local current = obj.TextColor3;
+
+			if ThemeColorEquals(current, self.__LastAccentColor)
+				or ThemeColorIn(self.Theme.AccentSources, current) then
+				obj.TextColor3 = self.AccentColor;
+			elseif ThemeColorEquals(current, self.__LastTextColor)
+				or ThemeColorIn(self.Theme.TextSources, current) then
+				obj.TextColor3 = self.TextColor;
+			elseif ThemeColorEquals(current, self.__LastSecondaryTextColor)
+				or ThemeColorIn(self.Theme.SecondaryTextSources, current) then
+				obj.TextColor3 = self.SecondaryTextColor;
+			end;
+
+			pcall(function()
+				obj.Font = self.Fonts[self.FontName] or Enum.Font.GothamMedium;
+			end);
+		end;
+
+	elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+		if ThemeColorEquals(obj.ImageColor3, self.__LastAccentColor)
+			or ThemeColorIn(self.Theme.AccentSources, obj.ImageColor3) then
+			obj.ImageColor3 = self.AccentColor;
+		end;
+
+	elseif obj:IsA("UIStroke") then
+		if ThemeColorEquals(obj.Color, self.__LastAccentColor)
+			or ThemeColorIn(self.Theme.AccentSources, obj.Color) then
+			obj.Color = self.AccentColor;
+		end;
+
+	elseif obj:IsA("Frame") then
+		if ThemeColorEquals(obj.BackgroundColor3, self.__LastAccentColor)
+			or ThemeColorIn(self.Theme.AccentSources, obj.BackgroundColor3) then
+			obj.BackgroundColor3 = self.AccentColor;
+		end;
+	end;
+end;
+
+function NeverLose:_ApplyTheme()
+	if not self.ScreenGui then return end;
+
+	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+		self:_ApplyThemeToObject(obj);
+	end;
 end;
 
 function NeverLose:SetFont(fontName)
@@ -3976,33 +4067,29 @@ function NeverLose:SetFont(fontName)
 	self.FontName = fontName or "GothamMedium";
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
-		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
-			local isBuilder = false;
+		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
+			and not self:_IsBuilderIconLabel(obj) then
 			pcall(function()
-				isBuilder = (obj.FontFace == self.BuiltInRegular or obj.FontFace == self.BuiltInBold);
+				obj.Font = font;
 			end);
-
-			if not isBuilder then
-				pcall(function()
-					obj.Font = font;
-				end);
-			end;
 		end;
 	end;
 end;
 
 function NeverLose:SetTextColor(color)
 	if typeof(color) ~= "Color3" then return end;
-	local old = self.TextColor;
+
+	self.__LastTextColor = self.TextColor;
 	self.TextColor = color;
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
-		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-			local isBuilder = false;
-			pcall(function()
-				isBuilder = (obj.FontFace == self.BuiltInRegular or obj.FontFace == self.BuiltInBold);
-			end);
-			if not isBuilder and (obj.TextColor3 == old or obj.TextColor3 == Color3.fromRGB(255,255,255)) then
+		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
+			and not self:_IsBuilderIconLabel(obj) then
+
+			local current = obj.TextColor3;
+
+			if ThemeColorEquals(current, self.__LastTextColor)
+				or ThemeColorIn(self.Theme.TextSources, current) then
 				obj.TextColor3 = color;
 			end;
 		end;
@@ -4011,12 +4098,18 @@ end;
 
 function NeverLose:SetSecondaryTextColor(color)
 	if typeof(color) ~= "Color3" then return end;
-	local old = self.SecondaryTextColor;
+
+	self.__LastSecondaryTextColor = self.SecondaryTextColor;
 	self.SecondaryTextColor = color;
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
-		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-			if obj.TextColor3 == old or obj.TextColor3 == Color3.fromRGB(186,186,186) then
+		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
+			and not self:_IsBuilderIconLabel(obj) then
+
+			local current = obj.TextColor3;
+
+			if ThemeColorEquals(current, self.__LastSecondaryTextColor)
+				or ThemeColorIn(self.Theme.SecondaryTextSources, current) then
 				obj.TextColor3 = color;
 			end;
 		end;
@@ -4025,21 +4118,54 @@ end;
 
 function NeverLose:SetAccentColor(color)
 	if typeof(color) ~= "Color3" then return end;
-	local old = self.AccentColor;
+
+	self.__LastAccentColor = self.AccentColor;
 	self.AccentColor = color;
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-			if obj.TextColor3 == old then obj.TextColor3 = color end;
+			if ThemeColorEquals(obj.TextColor3, self.__LastAccentColor)
+				or ThemeColorIn(self.Theme.AccentSources, obj.TextColor3) then
+				obj.TextColor3 = color;
+			end;
+
 		elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-			if obj.ImageColor3 == old then obj.ImageColor3 = color end;
+			if ThemeColorEquals(obj.ImageColor3, self.__LastAccentColor)
+				or ThemeColorIn(self.Theme.AccentSources, obj.ImageColor3) then
+				obj.ImageColor3 = color;
+			end;
+
 		elseif obj:IsA("UIStroke") then
-			if obj.Color == old then obj.Color = color end;
+			if ThemeColorEquals(obj.Color, self.__LastAccentColor)
+				or ThemeColorIn(self.Theme.AccentSources, obj.Color) then
+				obj.Color = color;
+			end;
+
 		elseif obj:IsA("Frame") then
-			-- Only change exact accent-colored controls, not the dark UI background.
-			if obj.BackgroundColor3 == old then obj.BackgroundColor3 = color end;
+			if ThemeColorEquals(obj.BackgroundColor3, self.__LastAccentColor)
+				or ThemeColorIn(self.Theme.AccentSources, obj.BackgroundColor3) then
+				obj.BackgroundColor3 = color;
+			end;
 		end;
 	end;
+end;
+
+-- Initial semantic values used to recognize the literal colors already
+-- present throughout source.luau.
+NeverLose.__LastAccentColor = NeverLose.AccentColor;
+NeverLose.__LastTextColor = NeverLose.TextColor;
+NeverLose.__LastSecondaryTextColor = NeverLose.SecondaryTextColor;
+
+-- Controls such as config rows can be created after the user changes the
+-- theme. Apply the active theme to those new descendants automatically.
+if NeverLose.ScreenGui then
+	NeverLose:AddSignal(NeverLose.ScreenGui.DescendantAdded:Connect(function(obj)
+		task.defer(function()
+			if obj and obj.Parent then
+				NeverLose:_ApplyThemeToObject(obj);
+			end;
+		end);
+	end));
 end;
 
 function NeverLose:_NormalizeImage(value)
@@ -4520,7 +4646,7 @@ function NeverLose:CreateWindow(Config)
 	WindowName.ZIndex = 7
 	WindowName.Font = Enum.Font.GothamBold
 	WindowName.Text = Window.Name
-	WindowName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	WindowName.TextColor3 = NeverLose.TextColor
 	WindowName.TextSize = 18.000
 	WindowName.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -4535,7 +4661,7 @@ function NeverLose:CreateWindow(Config)
 	WindowContent.ZIndex = 7
 	WindowContent.Font = Enum.Font.GothamBold
 	WindowContent.Text = Window.Content
-	WindowContent.TextColor3 = Color3.fromRGB(255, 255, 255)
+	WindowContent.TextColor3 = NeverLose.TextColor
 	WindowContent.TextSize = 9.000
 	WindowContent.TextTransparency = 0.650
 	WindowContent.TextXAlignment = Enum.TextXAlignment.Left
@@ -4610,7 +4736,7 @@ function NeverLose:CreateWindow(Config)
 	AccountName.ZIndex = 7
 	AccountName.Font = Enum.Font.GothamBold
 	AccountName.Text = ""
-	AccountName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	AccountName.TextColor3 = NeverLose.TextColor
 	AccountName.TextSize = 14.000
 	AccountName.TextXAlignment = Enum.TextXAlignment.Left
 	AccountName.TextTruncate = Enum.TextTruncate.SplitWord;
@@ -4626,7 +4752,7 @@ function NeverLose:CreateWindow(Config)
 	ExpireLabel.ZIndex = 7
 	ExpireLabel.Font = Enum.Font.GothamBold
 	ExpireLabel.Text = "never"
-	ExpireLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ExpireLabel.TextColor3 = NeverLose.TextColor
 	ExpireLabel.TextSize = 10.000
 	ExpireLabel.TextTransparency = 0.650
 	ExpireLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -4654,7 +4780,7 @@ function NeverLose:CreateWindow(Config)
 	UserSettingButton.ZIndex = 7
 	UserSettingButton.FontFace = NeverLose.BuiltInBold
 	UserSettingButton.Text = "chevron-large-right"
-	UserSettingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	UserSettingButton.TextColor3 = NeverLose.TextColor
 	UserSettingButton.TextSize = 13.000
 	UserSettingButton.TextTransparency = 0.5
 
@@ -4738,7 +4864,7 @@ function NeverLose:CreateWindow(Config)
 	ConfigIcon.ZIndex = 9
 	ConfigIcon.FontFace = NeverLose.BuiltInBold
 	ConfigIcon.Text = "floppy-disk"
-	ConfigIcon.TextColor3 = Color3.fromRGB(223, 223, 223)
+	ConfigIcon.TextColor3 = NeverLose.SecondaryTextColor
 	ConfigIcon.TextSize = 16.000
 	ConfigIcon.TextTransparency = 0.250
 	ConfigIcon.TextWrapped = true
@@ -4764,7 +4890,7 @@ function NeverLose:CreateWindow(Config)
 	ConfigName.ZIndex = 9
 	ConfigName.Font = Enum.Font.GothamMedium
 	ConfigName.Text = "Default"
-	ConfigName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	ConfigName.TextColor3 = NeverLose.TextColor
 	ConfigName.TextSize = 12.000
 	ConfigName.TextTransparency = 0.350
 	ConfigName.TextXAlignment = Enum.TextXAlignment.Left
@@ -4781,7 +4907,7 @@ function NeverLose:CreateWindow(Config)
 	ConfigBthIcon.ZIndex = 9
 	ConfigBthIcon.FontFace = NeverLose.BuiltInBold
 	ConfigBthIcon.Text = "chevron-small-down"
-	ConfigBthIcon.TextColor3 = Color3.fromRGB(223, 223, 223)
+	ConfigBthIcon.TextColor3 = NeverLose.SecondaryTextColor
 	ConfigBthIcon.TextSize = 16.000
 	ConfigBthIcon.TextTransparency = 0.250
 	ConfigBthIcon.TextWrapped = true
@@ -4810,7 +4936,7 @@ function NeverLose:CreateWindow(Config)
 	SearchIcon.ZIndex = 12
 	SearchIcon.FontFace = NeverLose.BuiltInBold
 	SearchIcon.Text = "magnifying-glass"
-	SearchIcon.TextColor3 = Color3.fromRGB(223, 223, 223)
+	SearchIcon.TextColor3 = NeverLose.SecondaryTextColor
 	SearchIcon.TextSize = 14.000
 	SearchIcon.TextTransparency = 0.45
 	SearchIcon.TextWrapped = true
@@ -4829,7 +4955,7 @@ function NeverLose:CreateWindow(Config)
 	SearchBox.Font = Enum.Font.GothamMedium
 	SearchBox.PlaceholderText = "Search"
 	SearchBox.Text = ""
-	SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	SearchBox.TextColor3 = NeverLose.TextColor
 	SearchBox.TextSize = 13.000
 	SearchBox.TextTransparency = 1
 	SearchBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -5017,7 +5143,7 @@ function NeverLose:CreateWindow(Config)
 		TabLabel.ZIndex = 8
 		TabLabel.Font = Enum.Font.GothamMedium
 		TabLabel.Text = Name
-		TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TabLabel.TextColor3 = NeverLose.TextColor
 		TabLabel.TextSize = 11.000
 		TabLabel.TextTransparency = 0.500
 		TabLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -5098,7 +5224,7 @@ function Window:AddTab(Config)
 		TabContentLabel.ZIndex = 9
 		TabContentLabel.Font = Enum.Font.GothamMedium
 		TabContentLabel.Text = Config.Name
-		TabContentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TabContentLabel.TextColor3 = NeverLose.TextColor
 		TabContentLabel.TextSize = 12.000
 		TabContentLabel.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -5359,7 +5485,7 @@ function Window:AddTab(Config)
 			SectionLabel.ZIndex = 9
 			SectionLabel.Font = Enum.Font.GothamMedium
 			SectionLabel.Text = SecConfig.Name
-			SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			SectionLabel.TextColor3 = NeverLose.TextColor
 			SectionLabel.TextSize = 11.000
 			SectionLabel.TextTransparency = 0.500
 			SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -5470,7 +5596,7 @@ function Window:AddTab(Config)
 			SubIcon.ZIndex = 9
 			SubIcon.FontFace = NeverLose.BuiltInBold
 			SubIcon.Text = SubConfig.Icon;
-			SubIcon.TextColor3 = Color3.fromRGB(150, 150, 150)
+			SubIcon.TextColor3 = NeverLose.SecondaryTextColor
 			SubIcon.TextSize = 13.000
 			SubIcon.TextWrapped = true
 
@@ -5484,7 +5610,7 @@ function Window:AddTab(Config)
 			SubLabel.ZIndex = 9
 			SubLabel.Font = Enum.Font.GothamMedium
 			SubLabel.Text = SubConfig.Name
-			SubLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+			SubLabel.TextColor3 = NeverLose.SecondaryTextColor
 			SubLabel.TextSize = 12.000
 			SubLabel.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -5536,11 +5662,11 @@ function Window:AddTab(Config)
 				if val then
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 0.3 })
 					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = NeverLose.AccentColor })
-					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(255, 255, 255) })
+					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = NeverLose.TextColor })
 				else
 					NeverLose.PlayAnimate(SubButton, SlowyTween, { BackgroundTransparency = 1 })
-					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = Color3.fromRGB(150, 150, 150) })
-					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = Color3.fromRGB(200, 200, 200) })
+					NeverLose.PlayAnimate(SubIcon, SlowyTween, { TextColor3 = NeverLose.SecondaryTextColor })
+					NeverLose.PlayAnimate(SubLabel, SlowyTween, { TextColor3 = NeverLose.SecondaryTextColor })
 				end
 			end
 
@@ -5661,7 +5787,7 @@ function Window:AddTab(Config)
 		BasedLabel.ZIndex = 154
 		BasedLabel.Font = Enum.Font.GothamMedium
 		BasedLabel.Text = "Config"
-		BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		BasedLabel.TextColor3 = NeverLose.TextColor
 		BasedLabel.TextSize = 13.000
 		BasedLabel.TextTransparency = 0.200
 		BasedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -5736,7 +5862,7 @@ function Window:AddTab(Config)
 		TextBox.Font = Enum.Font.GothamMedium
 		TextBox.PlaceholderText = "Config Name ..."
 		TextBox.Text = ""
-		TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TextBox.TextColor3 = NeverLose.TextColor
 		TextBox.TextSize = 11.000
 		TextBox.TextTransparency = 0.350
 		TextBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -5778,7 +5904,7 @@ function Window:AddTab(Config)
 				AutoSaveIcon.TextColor3 = NeverLose.AccentColor
 				AutoSaveIcon.TextTransparency = 0.25
 			else
-				AutoSaveIcon.TextColor3 = Color3.fromRGB(150, 150, 150)
+				AutoSaveIcon.TextColor3 = NeverLose.SecondaryTextColor
 				AutoSaveIcon.TextTransparency = 0.65
 			end
 		end
@@ -5822,7 +5948,7 @@ function Window:AddTab(Config)
 		Icon.ZIndex = 153
 		Icon.FontFace = NeverLose.BuiltInBold
 		Icon.Text = "plus-large"
-		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		Icon.TextColor3 = NeverLose.SecondaryTextColor
 		Icon.TextSize = 16.000
 		Icon.TextTransparency = 0.350
 		Icon.TextWrapped = true
@@ -6075,7 +6201,7 @@ function Window:AddTab(Config)
 				Icon.ZIndex = 153
 				Icon.FontFace = NeverLose.BuiltInBold
 				Icon.Text = "trash-can"
-				Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+				Icon.TextColor3 = NeverLose.SecondaryTextColor
 				Icon.TextSize = 16.000
 				Icon.TextTransparency = 0.400
 				Icon.TextWrapped = true
@@ -6105,7 +6231,7 @@ function Window:AddTab(Config)
 				Icon_2.ZIndex = 153
 				Icon_2.FontFace = NeverLose.BuiltInBold
 				Icon_2.Text = "arrow-right-from-portrait-rectangle"
-				Icon_2.TextColor3 = Color3.fromRGB(223, 223, 223)
+				Icon_2.TextColor3 = NeverLose.SecondaryTextColor
 				Icon_2.TextSize = 16.000
 				Icon_2.TextTransparency = 0.400
 				Icon_2.TextWrapped = true
@@ -6127,7 +6253,7 @@ function Window:AddTab(Config)
 				BasedLabel.ZIndex = 153
 				BasedLabel.Font = Enum.Font.GothamMedium
 				BasedLabel.Text = ConfigNameStr
-				BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+				BasedLabel.TextColor3 = NeverLose.TextColor
 				BasedLabel.TextSize = 13.000
 				BasedLabel.TextTransparency = 0.200
 				BasedLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -6197,7 +6323,7 @@ function Window:AddTab(Config)
 				end)))
 
 				table.insert(ConfigLib.Signals , deleter.MouseLeave:Connect(LPH_NO_VIRTUALIZE(function()
-					NeverLose.PlayAnimate(Icon,SlowyTween,{ TextTransparency = 0.400, TextColor3 = Color3.fromRGB(223, 223, 223) })
+					NeverLose.PlayAnimate(Icon,SlowyTween,{ TextTransparency = 0.400, TextColor3 = NeverLose.SecondaryTextColor })
 				end)))
 
 				table.insert(ConfigLib.Signals , LoadConfig.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
@@ -6205,7 +6331,7 @@ function Window:AddTab(Config)
 				end)))
 
 				table.insert(ConfigLib.Signals , LoadConfig.MouseLeave:Connect(LPH_NO_VIRTUALIZE(function()
-					NeverLose.PlayAnimate(Icon_2,SlowyTween,{ TextTransparency = 0.400, TextColor3 = Color3.fromRGB(223, 223, 223) })
+					NeverLose.PlayAnimate(Icon_2,SlowyTween,{ TextTransparency = 0.400, TextColor3 = NeverLose.SecondaryTextColor })
 				end)))
 			end;
 
@@ -6867,7 +6993,7 @@ function NeverLose:CreateNotification()
 		NotifyName.ZIndex = 132
 		NotifyName.Font = Enum.Font.GothamBold
 		NotifyName.Text = Config.Title
-		NotifyName.TextColor3 = Color3.fromRGB(255, 255, 255)
+		NotifyName.TextColor3 = NeverLose.TextColor
 		NotifyName.TextSize = 17.000
 		NotifyName.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -6882,7 +7008,7 @@ function NeverLose:CreateNotification()
 		NotifyContent.ZIndex = 132
 		NotifyContent.Font = Enum.Font.GothamBold
 		NotifyContent.Text = Config.Content
-		NotifyContent.TextColor3 = Color3.fromRGB(255, 255, 255)
+		NotifyContent.TextColor3 = NeverLose.TextColor
 		NotifyContent.TextSize = 12.000
 		NotifyContent.TextTransparency = 0.650
 		NotifyContent.TextXAlignment = Enum.TextXAlignment.Left
@@ -7014,7 +7140,7 @@ function NeverLose:CreateLogger()
 		LogContent.ZIndex = 132
 		LogContent.Font = Enum.Font.GothamBold
 		LogContent.Text = Message
-		LogContent.TextColor3 = Color3.fromRGB(255, 255, 255)
+		LogContent.TextColor3 = NeverLose.TextColor
 		LogContent.TextSize = 12.000
 		LogContent.TextTransparency = 1
 		LogContent.TextXAlignment = Enum.TextXAlignment.Left
@@ -7044,7 +7170,7 @@ function NeverLose:CreateLogger()
 		Icon.ZIndex = 133
 		Icon.FontFace = NeverLose.BuiltInBold
 		Icon.Text = IconStr
-		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
+		Icon.TextColor3 = NeverLose.SecondaryTextColor
 		Icon.TextSize = 13.000
 		Icon.TextTransparency = 1
 		Icon.TextWrapped = true
