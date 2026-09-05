@@ -4227,10 +4227,15 @@ function NeverLose:SetTextColor(color)
 	if not self.__ApplyingTheme then self.CurrentTheme = "Custom" end;
 	if typeof(color) ~= "Color3" then return end;
 
-	self.__LastTextColor = self.TextColor;
+	local previousTextColor = self.TextColor;
+	self.__LastTextColor = previousTextColor;
+	ThemeRemember(self.Theme.TextSources, previousTextColor);
+	ThemeRemember(self.Theme.TextSources, color);
 	self.TextColor = color;
 	self.__LastSecondaryTextColor = self.SecondaryTextColor;
+	ThemeRemember(self.Theme.SecondaryTextSources, self.SecondaryTextColor);
 	self.SecondaryTextColor = self:_DeriveSecondaryTextColor();
+	ThemeRemember(self.Theme.SecondaryTextSources, self.SecondaryTextColor);
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
@@ -4260,6 +4265,8 @@ function NeverLose:SetAccentColor(color)
 
 	local previous = self.AccentColor
 	self.__LastAccentColor = previous
+	ThemeRemember(self.Theme.AccentSources, previous)
+	ThemeRemember(self.Theme.AccentSources, color)
 	self.AccentColor = color
 
 	-- Apply immediately, then once more after the current UI/tween work has
@@ -4293,17 +4300,7 @@ function NeverLose:SetAccentColor(color)
 		end
 	end
 
-	-- Keep runtime-generated controls in sync without changing tabs.
-	task.defer(function()
-		if self.ScreenGui then
-			self:_ApplyTheme()
-		end
-	end)
-	task.delay(0.2, function()
-		if self.ScreenGui then
-			self:_ApplyTheme()
-		end
-	end)
+	-- Runtime-generated controls are handled by DescendantAdded below.
 end;
 
 -- Initial semantic values used to recognize the literal colors already
@@ -4401,15 +4398,44 @@ NeverLose.ThemePresets = {
 function NeverLose:SetTheme(name)
 	local preset = self.ThemePresets[name]
 	if not preset then return false end
+
+	-- Update every semantic value first and repaint once. This avoids
+	-- intermediate theme states that can make existing text lose its color.
 	self.__ApplyingTheme = true
 	self.CurrentTheme = name
-	self:SetAccentColor(preset.Accent)
-	self:SetTextColor(preset.Text)
-	self:SetMainColor(preset.Main)
-	self:SetSectionColor(preset.Section)
-	self:SetElementColor(preset.Element)
-	self:SetBorderColor(preset.Border)
-	self:SetFont(preset.Font)
+
+	self.__LastAccentColor = self.AccentColor
+	ThemeRemember(self.Theme.AccentSources, self.AccentColor)
+	ThemeRemember(self.Theme.AccentSources, preset.Accent)
+	self.AccentColor = preset.Accent
+
+	self.__LastTextColor = self.TextColor
+	ThemeRemember(self.Theme.TextSources, self.TextColor)
+	ThemeRemember(self.Theme.TextSources, preset.Text)
+	self.TextColor = preset.Text
+
+	self.__LastSecondaryTextColor = self.SecondaryTextColor
+	ThemeRemember(self.Theme.SecondaryTextSources, self.SecondaryTextColor)
+	self.SecondaryTextColor = self:_DeriveSecondaryTextColor()
+	ThemeRemember(self.Theme.SecondaryTextSources, self.SecondaryTextColor)
+
+	ThemeRemember(self.Theme.MainColorSources, self.MainColor)
+	ThemeRemember(self.Theme.MainColorSources, preset.Main)
+	self.MainColor = preset.Main
+
+	ThemeRemember(self.Theme.SectionColorSources, self.SectionColor)
+	ThemeRemember(self.Theme.SectionColorSources, preset.Section)
+	self.SectionColor = preset.Section
+
+	ThemeRemember(self.Theme.ElementColorSources, self.ElementColor)
+	ThemeRemember(self.Theme.ElementColorSources, preset.Element)
+	self.ElementColor = preset.Element
+
+	ThemeRemember(self.Theme.BorderColorSources, self.BorderColor)
+	ThemeRemember(self.Theme.BorderColorSources, preset.Border)
+	self.BorderColor = preset.Border
+
+	self.FontName = preset.Font
 	self.__ApplyingTheme = false
 	self:_ApplyTheme()
 	return true
@@ -6524,28 +6550,14 @@ function Window:AddTab(Config)
 			table.clear(ConfigList);
 		end;
 		
-		task.delay(1.5, function()
-			local path = Window.ConfigFolder..'/'..(ConfigLib.SelectedConfig or "Default");
-			if isfile(path) then
-				local ok, data = pcall(readfile, path);
-				if ok and data then
-					ConfigLib:LoadData(data);
-					ConfigName.Text = ConfigLib.SelectedConfig or "Default";
-					UpdateSize();
-					ConfigLib:RefreshConfig();
-					Logging.new("folder", "Loaded Config: " .. tostring(ConfigLib.SelectedConfig), 3.5);
-				end
-			end
-
-			
-			task.spawn(function()
-				while true do 
-					task.wait(2);
-					pcall(function()
-						ConfigLib:SaveActiveConfig();
-					end)
-				end;
-			end);
+		-- Auto-load is disabled. Configs are loaded only by the Load button.
+		task.spawn(function()
+			while true do
+				task.wait(2);
+				pcall(function()
+					ConfigLib:SaveActiveConfig();
+				end)
+			end;
 		end);
 
 		local hover_write = NeverLose:CreateInput(ConfigIcon,function()
@@ -6840,34 +6852,6 @@ function Window:AddTab(Config)
 		UIListLayout.FillDirection = Enum.FillDirection.Horizontal
 		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-
-		local WatermarkLogoFrame = Instance.new("Frame");
-		WatermarkLogoFrame.Name = NeverLose.RandomString();
-		WatermarkLogoFrame.BackgroundTransparency = 1;
-		WatermarkLogoFrame.BorderSizePixel = 0;
-		WatermarkLogoFrame.Size = UDim2.fromOffset(30, 30);
-		WatermarkLogoFrame.LayoutOrder = 0;
-		WatermarkLogoFrame.Parent = Watermark;
-
-		local WatermarkLogo = Instance.new("ImageLabel");
-		WatermarkLogo.Name = NeverLose.RandomString();
-		WatermarkLogo.BackgroundTransparency = 1;
-		WatermarkLogo.BorderSizePixel = 0;
-		WatermarkLogo.Size = UDim2.fromOffset(24, 24);
-		WatermarkLogo.Position = UDim2.fromOffset(3, 3);
-		WatermarkLogo.ScaleType = Enum.ScaleType.Fit;
-		WatermarkLogo.Image = NeverLose.GlobalLogo;
-		WatermarkLogo.Visible = NeverLose.LogoReady;
-		WatermarkLogo.ZIndex = 18;
-		WatermarkLogo.Parent = Watermark;
-		NeverLose.__WatermarkLogo = WatermarkLogo;
-
-		local empty_space = Instance.new('Frame');
-
-		empty_space.Size = UDim2.fromOffset(15,0);
-		empty_space.BackgroundTransparency = 1;
-		empty_space.Parent = Watermark;
-		empty_space.LayoutOrder = 5;
 
 		Watermark:GetPropertyChangedSignal('BackgroundTransparency'):Connect(LPH_NO_VIRTUALIZE(function()
 			if Watermark.BackgroundTransparency > 0.9 then
