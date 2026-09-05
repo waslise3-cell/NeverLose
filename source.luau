@@ -935,9 +935,7 @@ end);
 
 NeverLose.PlayAnimate = LPH_NO_VIRTUALIZE(function(Self , Info , Property)
 	local Tween = TweenService:Create(Self , Info or TweenInfo.new(0.25) , Property);
-
 	Tween:Play();
-
 	return Tween;
 end);
 
@@ -1465,6 +1463,8 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	ColorPickerHandler.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	ColorPickerHandler.BorderSizePixel = 0
 	ColorPickerHandler.ClipsDescendants = true
+	ColorPickerHandler.Active = true
+	ColorPickerHandler.Selectable = false
 	ColorPickerHandler.Position = UDim2.new(255, 0, 255, 20)
 	ColorPickerHandler.Size = UDim2.new(0, 200, 0, 240)
 	ColorPickerHandler.ZIndex = ZIndex + 125
@@ -1500,6 +1500,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	SaViMap.Position = UDim2.new(0.5, 0, 0, 5)
 	SaViMap.Size = UDim2.new(0, 185, 0, 185)
 	SaViMap.ZIndex = ZIndex + 126
+	SaViMap.Active = true
 	SaViMap.Image = NeverLose.ImageColorMapping 
 
 	UICorner_2.CornerRadius = UDim.new(0, 5)
@@ -1515,6 +1516,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	ColorZoneSelection.Position = UDim2.new(0.5, 0, 0.5, 0)
 	ColorZoneSelection.Size = UDim2.new(0, 10, 0, 10)
 	ColorZoneSelection.ZIndex = ZIndex + 127
+	ColorZoneSelection.Active = false
 
 	UICorner_3.CornerRadius = UDim.new(1, 0)
 	UICorner_3.Parent = ColorZoneSelection
@@ -1531,6 +1533,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	ColorMap.Position = UDim2.new(0.5, 0, 0, 200)
 	ColorMap.Size = UDim2.new(1, -15, 0, 10)
 	ColorMap.ZIndex = ZIndex + 126
+	ColorMap.Active = true
 
 	UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.10, Color3.fromRGB(255, 153, 0)), ColorSequenceKeypoint.new(0.20, Color3.fromRGB(203, 255, 0)), ColorSequenceKeypoint.new(0.30, Color3.fromRGB(50, 255, 0)), ColorSequenceKeypoint.new(0.40, Color3.fromRGB(0, 255, 102)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 101, 255)), ColorSequenceKeypoint.new(0.70, Color3.fromRGB(50, 0, 255)), ColorSequenceKeypoint.new(0.80, Color3.fromRGB(204, 0, 255)), ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 153)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))}
 	UIGradient.Parent = ColorMap
@@ -1700,39 +1703,61 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 		end;
 	end));
 
-	NeverLose:AddSignal(ColorMap.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-			ColorPickerLib.IsHold = true;
+	local function UpdateHueAt(x)
+	local left = ColorMap.AbsolutePosition.X
+	local width = math.max(ColorMap.AbsoluteSize.X, 1)
+	ColorPickerLib.H = math.clamp((x - left) / width, 0, 1)
+	ColorPickerLib:Update()
+end
 
-			while (UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or ColorPickerLib.IsHold) do task.wait()
-				local ColorY = ColorMap.AbsolutePosition.X
-				local ColorYM = ColorY + ColorMap.AbsoluteSize.X;
-				local Value = math.clamp(Mouse.X, ColorY, ColorYM)
-				local Code = ((Value - ColorY) / (ColorYM - ColorY));
+local function UpdateSVAt(x, y)
+	local left = SaViMap.AbsolutePosition.X
+	local top = SaViMap.AbsolutePosition.Y
+	local width = math.max(SaViMap.AbsoluteSize.X, 1)
+	local height = math.max(SaViMap.AbsoluteSize.Y, 1)
 
-				ColorPickerLib.H = Code;
-				ColorPickerLib:Update();
-			end;
-		end;
-	end)));
+	ColorPickerLib.S = math.clamp((x - left) / width, 0, 1)
+	ColorPickerLib.V = 1 - math.clamp((y - top) / height, 0, 1)
+	ColorPickerLib:Update()
+end
 
-	NeverLose:AddSignal(SaViMap.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-			ColorPickerLib.IsHold = true;
+NeverLose:AddSignal(ColorMap.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(Input)
+	if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+		ColorPickerLib.IsHold = true
+		UpdateHueAt(Input.Position.X)
+	end
+end)))
 
-			while (UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) or ColorPickerLib.IsHold) do task.wait();
-				local PosX = SaViMap.AbsolutePosition.X;
-				local ScaleX = PosX + SaViMap.AbsoluteSize.X;
-				local Value, PosY = math.clamp(Mouse.X, PosX, ScaleX), SaViMap.AbsolutePosition.Y;
-				local ScaleY = PosY + SaViMap.AbsoluteSize.Y;
-				local Vals = math.clamp(Mouse.Y, PosY, ScaleY);
+NeverLose:AddSignal(SaViMap.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(Input)
+	if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+		ColorPickerLib.IsHold = true
+		UpdateSVAt(Input.Position.X, Input.Position.Y)
+	end
+end)))
 
-				ColorPickerLib.S = (Value - PosX) / (ScaleX - PosX);
-				ColorPickerLib.V = (1 - ((Vals - PosY) / (ScaleY - PosY)));
-				ColorPickerLib:Update();
-			end
+NeverLose:AddSignal(UserInputService.InputChanged:Connect(LPH_NO_VIRTUALIZE(function(Input)
+	if not ColorPickerLib.IsHold then return end
+
+	if Input.UserInputType == Enum.UserInputType.MouseMovement then
+		local mousePosition = UserInputService:GetMouseLocation()
+		local x, y = mousePosition.X, mousePosition.Y
+
+		local pickerPosition = SaViMap.AbsolutePosition
+		local pickerSize = SaViMap.AbsoluteSize
+		local huePosition = ColorMap.AbsolutePosition
+		local hueSize = ColorMap.AbsoluteSize
+
+		if x >= pickerPosition.X and x <= pickerPosition.X + pickerSize.X
+			and y >= pickerPosition.Y and y <= pickerPosition.Y + pickerSize.Y then
+			UpdateSVAt(x, y)
+		elseif x >= huePosition.X and x <= huePosition.X + hueSize.X
+			and y >= huePosition.Y and y <= huePosition.Y + hueSize.Y then
+			UpdateHueAt(x)
 		end
-	end)));
+	elseif Input.UserInputType == Enum.UserInputType.Touch then
+		UpdateSVAt(Input.Position.X, Input.Position.Y)
+	end
+end)))
 
 	return ColorPickerLib;
 end;
@@ -3971,6 +3996,7 @@ NeverLose.Fonts = {
 
 NeverLose.Theme = {
 	AccentSources = {
+		NeverLose.AccentColor,
 		Color3.fromRGB(97, 65, 145),
 	},
 
@@ -3999,6 +4025,35 @@ local function ThemeColorIn(list, value)
 	end;
 	return false;
 end;
+
+-- Theme-aware tween wrapper. Old literal colors used by hover/render
+-- animations are redirected to the currently selected semantic colors.
+NeverLose.PlayAnimate = LPH_NO_VIRTUALIZE(function(Self, Info, Property)
+	local target = {}
+
+	for property, value in pairs(Property) do
+		if typeof(value) == "Color3" then
+			if ThemeColorEquals(value, NeverLose.__LastAccentColor)
+				or ThemeColorIn(NeverLose.Theme.AccentSources, value) then
+				target[property] = NeverLose.AccentColor
+			elseif ThemeColorEquals(value, NeverLose.__LastTextColor)
+				or ThemeColorIn(NeverLose.Theme.TextSources, value) then
+				target[property] = NeverLose.TextColor
+			elseif ThemeColorEquals(value, NeverLose.__LastSecondaryTextColor)
+				or ThemeColorIn(NeverLose.Theme.SecondaryTextSources, value) then
+				target[property] = NeverLose.SecondaryTextColor
+			else
+				target[property] = value
+			end
+		else
+			target[property] = value
+		end
+	end
+
+	local Tween = TweenService:Create(Self, Info or TweenInfo.new(0.25), target)
+	Tween:Play()
+	return Tween
+end);
 
 function NeverLose:_IsBuilderIconLabel(obj)
 	if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then
@@ -4117,37 +4172,54 @@ function NeverLose:SetSecondaryTextColor(color)
 end;
 
 function NeverLose:SetAccentColor(color)
-	if typeof(color) ~= "Color3" then return end;
+	if typeof(color) ~= "Color3" then return end
 
-	self.__LastAccentColor = self.AccentColor;
-	self.AccentColor = color;
+	local previous = self.AccentColor
+	self.__LastAccentColor = previous
+	self.AccentColor = color
+
+	-- Apply immediately, then once more after the current UI/tween work has
+	-- yielded. This prevents a control's SetRender tween from restoring the
+	-- old accent one frame after the picker callback.
+	self:_ApplyTheme()
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-			if ThemeColorEquals(obj.TextColor3, self.__LastAccentColor)
-				or ThemeColorIn(self.Theme.AccentSources, obj.TextColor3) then
-				obj.TextColor3 = color;
-			end;
-
+			if not self:_IsBuilderIconLabel(obj) and (
+				ThemeColorEquals(obj.TextColor3, previous)
+				or ThemeColorIn(self.Theme.AccentSources, obj.TextColor3)
+			) then
+				obj.TextColor3 = color
+			end
 		elseif obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-			if ThemeColorEquals(obj.ImageColor3, self.__LastAccentColor)
+			if ThemeColorEquals(obj.ImageColor3, previous)
 				or ThemeColorIn(self.Theme.AccentSources, obj.ImageColor3) then
-				obj.ImageColor3 = color;
-			end;
-
+				obj.ImageColor3 = color
+			end
 		elseif obj:IsA("UIStroke") then
-			if ThemeColorEquals(obj.Color, self.__LastAccentColor)
+			if ThemeColorEquals(obj.Color, previous)
 				or ThemeColorIn(self.Theme.AccentSources, obj.Color) then
-				obj.Color = color;
-			end;
-
+				obj.Color = color
+			end
 		elseif obj:IsA("Frame") then
-			if ThemeColorEquals(obj.BackgroundColor3, self.__LastAccentColor)
+			if ThemeColorEquals(obj.BackgroundColor3, previous)
 				or ThemeColorIn(self.Theme.AccentSources, obj.BackgroundColor3) then
-				obj.BackgroundColor3 = color;
-			end;
-		end;
-	end;
+				obj.BackgroundColor3 = color
+			end
+		end
+	end
+
+	-- Keep runtime-generated controls in sync without changing tabs.
+	task.defer(function()
+		if self.ScreenGui then
+			self:_ApplyTheme()
+		end
+	end)
+	task.delay(0.2, function()
+		if self.ScreenGui then
+			self:_ApplyTheme()
+		end
+	end)
 end;
 
 -- Initial semantic values used to recognize the literal colors already
