@@ -197,6 +197,9 @@ NeverLose.TextColor = Color3.fromRGB(255, 255, 255);
 NeverLose.SecondaryTextColor = Color3.fromRGB(186, 186, 186);
 NeverLose.FontName = "GothamMedium";
 NeverLose.MainColor = Color3.fromRGB(8, 8, 13);
+NeverLose.SectionColor = Color3.fromRGB(20, 22, 27);
+NeverLose.ElementColor = Color3.fromRGB(26, 28, 36);
+NeverLose.BorderColor = Color3.fromRGB(45, 48, 58);
 NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
 NeverLose.IsMosueOverOtherFrame = false;
@@ -1645,6 +1648,8 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 			})
 
 			Shadow:Render(false)
+			ColorPickerLib.IsHold = false;
+			NeverLose.IsMosueOverOtherFrame = false;
 		end;
 	end);
 
@@ -1693,6 +1698,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 
 	NeverLose:AddSignal(ColorPickerHandler.InputBegan:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+			NeverLose.IsMosueOverOtherFrame = true;
 			ColorPickerLib.IsHold = true;
 		end;
 	end));
@@ -1700,6 +1706,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	NeverLose:AddSignal(ColorPickerHandler.InputEnded:Connect(function(Input)
 		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 			ColorPickerLib.IsHold = false;
+			NeverLose.IsMosueOverOtherFrame = false;
 		end;
 	end));
 
@@ -1739,7 +1746,10 @@ NeverLose:AddSignal(UserInputService.InputChanged:Connect(LPH_NO_VIRTUALIZE(func
 	if not ColorPickerLib.IsHold then return end
 
 	if Input.UserInputType == Enum.UserInputType.MouseMovement then
-		local mousePosition = UserInputService:GetMouseLocation()
+		-- Input.Position is already in the same screen coordinate space as AbsolutePosition.
+		-- GetMouseLocation() includes the GUI inset in some executor/Roblox versions,
+		-- which caused the picker selector to appear below the cursor.
+		local mousePosition = Input.Position
 		local x, y = mousePosition.X, mousePosition.Y
 
 		local pickerPosition = SaViMap.AbsolutePosition
@@ -2470,6 +2480,7 @@ end;
 				signal = nil;
 			end;
 
+			NeverLose.IsMosueOverOtherFrame = true;
 			BackendM.SetRender(true);
 
 			signal = UserInputService.InputBegan:Connect(function(Input)
@@ -4011,6 +4022,10 @@ NeverLose.Theme = {
 		Color3.fromRGB(150, 150, 150),
 	},
 };
+NeverLose.Theme.MainColorSources = {NeverLose.MainColor, Color3.fromRGB(8, 8, 13)};
+NeverLose.Theme.SectionColorSources = {NeverLose.SectionColor, Color3.fromRGB(20, 22, 27)};
+NeverLose.Theme.ElementColorSources = {NeverLose.ElementColor, Color3.fromRGB(26, 28, 36)};
+NeverLose.Theme.BorderColorSources = {NeverLose.BorderColor, Color3.fromRGB(45, 48, 58)};
 
 local function ThemeColorEquals(a, b)
 	return typeof(a) == "Color3" and typeof(b) == "Color3"
@@ -4024,6 +4039,27 @@ local function ThemeColorIn(list, value)
 		end;
 	end;
 	return false;
+end;
+
+local function ThemeRemember(list, color)
+	if typeof(color) ~= "Color3" then return end;
+	for _, existing in ipairs(list) do
+		if ThemeColorEquals(existing, color) then return end;
+	end;
+	table.insert(list, color);
+end;
+
+function NeverLose:_DeriveSecondaryTextColor()
+	-- Secondary text is intentionally not user-selectable anymore. It follows
+	-- the current primary text color while staying readable on the GUI background.
+	local t = self.TextColor
+	local b = self.MainColor
+	local amount = 0.62
+	return Color3.new(
+		t.R * amount + b.R * (1 - amount),
+		t.G * amount + b.G * (1 - amount),
+		t.B * amount + b.B * (1 - amount)
+	)
 end;
 
 -- Theme-aware tween wrapper. Old literal colors used by hover/render
@@ -4099,12 +4135,21 @@ function NeverLose:_ApplyThemeToObject(obj)
 		if ThemeColorEquals(obj.Color, self.__LastAccentColor)
 			or ThemeColorIn(self.Theme.AccentSources, obj.Color) then
 			obj.Color = self.AccentColor;
+		elseif ThemeColorIn(self.Theme.BorderColorSources or {}, obj.Color) then
+			obj.Color = self.BorderColor;
 		end;
 
 	elseif obj:IsA("Frame") then
-		if ThemeColorEquals(obj.BackgroundColor3, self.__LastAccentColor)
-			or ThemeColorIn(self.Theme.AccentSources, obj.BackgroundColor3) then
+		local bg = obj.BackgroundColor3;
+		if ThemeColorEquals(bg, self.__LastAccentColor)
+			or ThemeColorIn(self.Theme.AccentSources, bg) then
 			obj.BackgroundColor3 = self.AccentColor;
+		elseif ThemeColorIn(self.Theme.MainColorSources or {}, bg) then
+			obj.BackgroundColor3 = self.MainColor;
+		elseif ThemeColorIn(self.Theme.SectionColorSources or {}, bg) then
+			obj.BackgroundColor3 = self.SectionColor;
+		elseif ThemeColorIn(self.Theme.ElementColorSources or {}, bg) then
+			obj.BackgroundColor3 = self.ElementColor;
 		end;
 	end;
 end;
@@ -4136,6 +4181,8 @@ function NeverLose:SetTextColor(color)
 
 	self.__LastTextColor = self.TextColor;
 	self.TextColor = color;
+	self.__LastSecondaryTextColor = self.SecondaryTextColor;
+	self.SecondaryTextColor = self:_DeriveSecondaryTextColor();
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
@@ -4152,23 +4199,11 @@ function NeverLose:SetTextColor(color)
 end;
 
 function NeverLose:SetSecondaryTextColor(color)
+	-- Kept for backwards compatibility, but secondary text is derived from TextColor.
 	if typeof(color) ~= "Color3" then return end;
-
 	self.__LastSecondaryTextColor = self.SecondaryTextColor;
 	self.SecondaryTextColor = color;
-
-	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
-		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
-			and not self:_IsBuilderIconLabel(obj) then
-
-			local current = obj.TextColor3;
-
-			if ThemeColorEquals(current, self.__LastSecondaryTextColor)
-				or ThemeColorIn(self.Theme.SecondaryTextSources, current) then
-				obj.TextColor3 = color;
-			end;
-		end;
-	end;
+	self:_ApplyTheme();
 end;
 
 function NeverLose:SetAccentColor(color)
@@ -4307,6 +4342,66 @@ function NeverLose:SetBackgroundImage(value, transparency, scaleType)
 				image.Visible = false;
 			end;
 		end);
+	end;
+end;
+
+function NeverLose:SetMainColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local previous = self.MainColor;
+	self.MainColor = color;
+	self.Theme.MainColorSources = self.Theme.MainColorSources or {Color3.fromRGB(8, 8, 13)};
+	ThemeRemember(self.Theme.MainColorSources, previous);
+	if self.ScreenGui then
+		for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+			if obj:IsA("Frame") and ThemeColorIn(self.Theme.MainColorSources, obj.BackgroundColor3) then
+				obj.BackgroundColor3 = color;
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetSectionColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local previous = self.SectionColor;
+	self.SectionColor = color;
+	self.Theme.SectionColorSources = self.Theme.SectionColorSources or {Color3.fromRGB(20, 22, 27)};
+	ThemeRemember(self.Theme.SectionColorSources, previous);
+	if self.ScreenGui then
+		for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+			if obj:IsA("Frame") and ThemeColorIn(self.Theme.SectionColorSources, obj.BackgroundColor3) then
+				obj.BackgroundColor3 = color;
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetElementColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local previous = self.ElementColor;
+	self.ElementColor = color;
+	self.Theme.ElementColorSources = self.Theme.ElementColorSources or {Color3.fromRGB(26, 28, 36)};
+	ThemeRemember(self.Theme.ElementColorSources, previous);
+	if self.ScreenGui then
+		for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+			if obj:IsA("Frame") and ThemeColorIn(self.Theme.ElementColorSources, obj.BackgroundColor3) then
+				obj.BackgroundColor3 = color;
+			end;
+		end;
+	end;
+end;
+
+function NeverLose:SetBorderColor(color)
+	if typeof(color) ~= "Color3" then return end;
+	local previous = self.BorderColor;
+	self.BorderColor = color;
+	self.Theme.BorderColorSources = self.Theme.BorderColorSources or {Color3.fromRGB(45, 48, 58)};
+	ThemeRemember(self.Theme.BorderColorSources, previous);
+	if self.ScreenGui then
+		for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
+			if obj:IsA("UIStroke") and ThemeColorIn(self.Theme.BorderColorSources, obj.Color) then
+				obj.Color = color;
+			end;
+		end;
 	end;
 end;
 
@@ -6550,11 +6645,35 @@ function Window:AddTab(Config)
 		end,
 	});
 
-	local GUISecondaryText = UserSettings:AddLabel("Secondary Text");
-	GUISecondaryText:AddColorPicker({
-		Default = NeverLose.SecondaryTextColor,
+	local GUIBackground = UserSettings:AddLabel("GUI Background");
+	GUIBackground:AddColorPicker({
+		Default = NeverLose.MainColor,
 		Callback = function(v)
-			Window:SetSecondaryTextColor(v);
+			Window:SetMainColor(v);
+		end,
+	});
+
+	local GUISection = UserSettings:AddLabel("Section Background");
+	GUISection:AddColorPicker({
+		Default = NeverLose.SectionColor,
+		Callback = function(v)
+			Window:SetSectionColor(v);
+		end,
+	});
+
+	local GUIElement = UserSettings:AddLabel("Element Background");
+	GUIElement:AddColorPicker({
+		Default = NeverLose.ElementColor,
+		Callback = function(v)
+			Window:SetElementColor(v);
+		end,
+	});
+
+	local GUIBorder = UserSettings:AddLabel("Border Color");
+	GUIBorder:AddColorPicker({
+		Default = NeverLose.BorderColor,
+		Callback = function(v)
+			Window:SetBorderColor(v);
 		end,
 	});
 
@@ -6629,7 +6748,10 @@ function Window:AddTab(Config)
 	function Window:ResetGUITheme()
 		self:SetAccentColor(Color3.fromRGB(97, 65, 145));
 		self:SetTextColor(Color3.fromRGB(255, 255, 255));
-		self:SetSecondaryTextColor(Color3.fromRGB(186, 186, 186));
+		self:SetMainColor(Color3.fromRGB(8, 8, 13));
+		self:SetSectionColor(Color3.fromRGB(20, 22, 27));
+		self:SetElementColor(Color3.fromRGB(26, 28, 36));
+		self:SetBorderColor(Color3.fromRGB(45, 48, 58));
 		self:SetFont("GothamMedium");
 	end;
 
@@ -6699,6 +6821,26 @@ function Window:AddTab(Config)
 
 	function Window:SetTextColor(color)
 		NeverLose:SetTextColor(color);
+	end;
+
+	function Window:SetMainColor(color)
+		NeverLose:SetMainColor(color);
+	end;
+
+	function Window:SetBackgroundColor(color)
+		NeverLose:SetMainColor(color);
+	end;
+
+	function Window:SetSectionColor(color)
+		NeverLose:SetSectionColor(color);
+	end;
+
+	function Window:SetElementColor(color)
+		NeverLose:SetElementColor(color);
+	end;
+
+	function Window:SetBorderColor(color)
+		NeverLose:SetBorderColor(color);
 	end;
 
 	function Window:SetSecondaryTextColor(color)
