@@ -145,6 +145,48 @@ isfile = isfile or getgenv().isfile;
 
 local NeverLose = {};
 
+-- Lucide icon renderer.
+-- Public Icon= values are now Lucide names instead of Roblox BuilderIcons.
+-- Lucide.Lua rasterizes the requested SVG to a Roblox-compatible image asset.
+local NeverLoseLucide = nil;
+pcall(function()
+	NeverLoseLucide = loadstring(game:HttpGet(
+		"https://raw.githubusercontent.com/xxpwnxxx420lord/Lucide.Lua/refs/heads/main/lucide.lua",
+		true
+	))();
+end);
+
+NeverLose.Lucide = NeverLoseLucide;
+
+function NeverLose:CreateLucideIcon(parent, iconName, size, color, zIndex)
+	local image = Instance.new("ImageLabel");
+	image.Name = self.RandomString and self:RandomString() or "LucideIcon";
+	image.Parent = parent;
+	image.BackgroundTransparency = 1;
+	image.BorderSizePixel = 0;
+	image.Size = UDim2.fromOffset(size or 18, size or 18);
+	image.ZIndex = zIndex or 1;
+	image.ScaleType = Enum.ScaleType.Fit;
+	image.ImageColor3 = color or Color3.fromRGB(255, 255, 255);
+	image.ImageTransparency = 0;
+
+	if NeverLoseLucide and iconName and iconName ~= "" then
+		local ok, asset = pcall(function()
+			return NeverLoseLucide:geticon(iconName, {
+				size = math.max(size or 18, 16),
+				color = "#ffffff",
+				stroke_width = 1.8,
+			});
+		end);
+
+		if ok and asset then
+			image.Image = asset;
+		end;
+	end;
+
+	return image;
+end;
+
 NeverLose.BuiltInRegular = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Regular,Enum.FontStyle.Normal);
 NeverLose.BuiltInBold = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Bold,Enum.FontStyle.Normal);
 NeverLose.GlobalSignals = {};
@@ -2304,7 +2346,7 @@ end;
 				})
 			else
 				NeverLose.PlayAnimate(Icon , SlowyTween , {
-					TextTransparency = 1
+					ImageTransparency = 1
 				})
 			end;
 		end);
@@ -2864,7 +2906,7 @@ end;
 				});
 
 				NeverLose.PlayAnimate(DropdownIcon , SlowyTween , {
-					TextTransparency = 0.250
+					ImageTransparency = 0.250
 				});
 
 				NeverLose.PlayAnimate(UIStroke , SlowyTween , {
@@ -3671,7 +3713,6 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		local BasedLabel = Instance.new("TextLabel")
 		local LineFrame = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
-		local Icon = Instance.new("TextLabel")
 
 		NeverLose:AddQuery(ButtonFrame , Config.Name);
 
@@ -3714,28 +3755,31 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = ButtonFrame
 
-		Icon.Name = NeverLose.RandomString();
-		Icon.Parent = ButtonFrame
-		Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		Icon.BackgroundTransparency = 1.000
-		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Icon.BorderSizePixel = 0
-		Icon.Position = UDim2.new(0, 11, 0, 5)
-		Icon.Size = UDim2.new(0, 18, 0, 18)
-		Icon.ZIndex = LayerIndex + 9
-		Icon.FontFace = NeverLose.BuiltInBold
-		Icon.Text = Config.Icon
-		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
-		Icon.TextSize = 16.000
-		Icon.TextTransparency = 0.250
-		Icon.TextWrapped = true
+		local Icon = NeverLose:CreateLucideIcon(
+			ButtonFrame,
+			Config.Icon,
+			18,
+			Color3.fromRGB(223, 223, 223),
+			LayerIndex + 9
+		);
+		Icon.Position = UDim2.new(0, 11, 0, 5);
+		Icon.ImageTransparency = 0.250;
 
 		function Button:SetText(t)
 			BasedLabel.Text = t;
 		end;
 
 		function Button:SetIcon(t)
-			Icon.Text = t
+			local ok, asset = pcall(function()
+				return NeverLoseLucide and NeverLoseLucide:geticon(t, {
+					size = 18,
+					color = "#ffffff",
+					stroke_width = 1.8,
+				});
+			end);
+			if ok and asset then
+				Icon.Image = asset;
+			end;
 		end;
 
 		local bth = NeverLose:CreateInput(ButtonFrame , LPH_NO_VIRTUALIZE(function()
@@ -4861,7 +4905,6 @@ function Window:AddTab(Config)
 
 		local TabButton = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
-		local TabIcon = Instance.new("TextLabel")
 		local TabContentLabel = Instance.new("TextLabel")
 
 		Tab.Idx = TabButton;
@@ -4879,21 +4922,16 @@ function Window:AddTab(Config)
 		UICorner.CornerRadius = UDim.new(0, 6)
 		UICorner.Parent = TabButton
 
-		TabIcon.Name = NeverLose.RandomString();
-		TabIcon.Parent = TabButton
-		TabIcon.AnchorPoint = Vector2.new(0, 0.5)
-		TabIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		TabIcon.BackgroundTransparency = 1.000
-		TabIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		TabIcon.BorderSizePixel = 0
-		TabIcon.Position = UDim2.new(0, 2, 0.5, 0)
-		TabIcon.Size = UDim2.new(0, 25, 0, 25)
-		TabIcon.ZIndex = 9
-		TabIcon.FontFace = NeverLose.BuiltInBold
-		TabIcon.Text = Config.Icon;
-		TabIcon.TextColor3 = NeverLose.AccentColor
-		TabIcon.TextSize = 16.000
-		TabIcon.TextWrapped = true
+		local TabIcon = NeverLose:CreateLucideIcon(
+			TabButton,
+			Config.Icon,
+			20,
+			NeverLose.AccentColor,
+			9
+		);
+		TabIcon.AnchorPoint = Vector2.new(0, 0.5);
+		TabIcon.Position = UDim2.new(0, 4, 0.5, 0);
+		TabIcon.ImageTransparency = 0.0;
 
 		TabContentLabel.Name = NeverLose.RandomString();
 		TabContentLabel.Parent = TabButton
@@ -5007,8 +5045,8 @@ function Window:AddTab(Config)
 			LeftScroll.Position = UDim2.new(0.5, 0, 0.5, 0)
 		end;
 
-		NeverLose:AddSignal(TabIcon:GetPropertyChangedSignal('TextTransparency'):Connect(LPH_NO_VIRTUALIZE(function()
-			if TabIcon.TextTransparency > 0.4 then
+		NeverLose:AddSignal(TabIcon:GetPropertyChangedSignal('ImageTransparency'):Connect(LPH_NO_VIRTUALIZE(function()
+			if TabIcon.ImageTransparency > 0.4 then
 				UIListLayout.Parent = nil;
 				UIListLayout_2.Parent = nil;
 				TabFrame.Visible = false;
@@ -5269,19 +5307,15 @@ function Window:AddTab(Config)
 			SubCorner.CornerRadius = UDim.new(0, 6)
 			SubCorner.Parent = SubButton
 
-			local SubIcon = Instance.new("TextLabel")
-			SubIcon.Name = NeverLose.RandomString();
-			SubIcon.Parent = SubButton
-			SubIcon.AnchorPoint = Vector2.new(0, 0.5)
-			SubIcon.BackgroundTransparency = 1
-			SubIcon.Position = UDim2.new(0, 4, 0.5, 0)
-			SubIcon.Size = UDim2.new(0, 20, 0, 20)
-			SubIcon.ZIndex = 9
-			SubIcon.FontFace = NeverLose.BuiltInBold
-			SubIcon.Text = SubConfig.Icon;
-			SubIcon.TextColor3 = Color3.fromRGB(150, 150, 150)
-			SubIcon.TextSize = 13.000
-			SubIcon.TextWrapped = true
+			local SubIcon = NeverLose:CreateLucideIcon(
+				SubButton,
+				SubConfig.Icon,
+				17,
+				Color3.fromRGB(150, 150, 150),
+				9
+			);
+			SubIcon.AnchorPoint = Vector2.new(0, 0.5);
+			SubIcon.Position = UDim2.new(0, 4, 0.5, 0);
 
 			local SubLabel = Instance.new("TextLabel")
 			SubLabel.Name = NeverLose.RandomString();
@@ -6291,7 +6325,6 @@ function Window:AddTab(Config)
 
 			local Frame = Instance.new("Frame")
 			local Content = Instance.new("TextLabel")
-			local Icon = Instance.new("TextLabel")
 
 			Frame.Parent = Watermark
 			Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -6317,22 +6350,16 @@ function Window:AddTab(Config)
 			Content.TextTransparency = 0.200
 			Content.TextXAlignment = Enum.TextXAlignment.Left
 
-			Icon.Name = NeverLose.RandomString();
-			Icon.Parent = Frame
-			Icon.AnchorPoint = Vector2.new(0, 0.5)
-			Icon.BackgroundColor3 = Color3.fromRGB(186, 186, 186)
-			Icon.BackgroundTransparency = 1.000
-			Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			Icon.BorderSizePixel = 0
-			Icon.Position = UDim2.new(0, 10, 0.5, 0)
-			Icon.Size = UDim2.new(0, 20, 0, 20)
-			Icon.ZIndex = 17
-			Icon.FontFace = NeverLose.BuiltInBold;
-			Icon.Text = IconStr
-			Icon.TextColor3 = NeverLose.AccentColor
-			Icon.TextSize = 18.000
-			Icon.TextTransparency = 0.250
-			Icon.TextWrapped = true
+			local Icon = NeverLose:CreateLucideIcon(
+				Frame,
+				IconStr,
+				20,
+				NeverLose.AccentColor,
+				17
+			);
+			Icon.AnchorPoint = Vector2.new(0, 0.5);
+			Icon.Position = UDim2.new(0, 10, 0.5, 0);
+			Icon.ImageTransparency = 0.250;
 
 			InnerBlock.Update = LPH_NO_VIRTUALIZE(function(value)
 				local size = TextService:GetTextSize(Content.Text , Content.TextSize,Content.Font,Vector2.new(math.huge,math.huge))
