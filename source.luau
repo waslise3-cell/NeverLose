@@ -4049,32 +4049,42 @@ end;
 -- against the previous value. This makes repeated color changes work
 -- across every already-created control and controls created later.
 
+local function SafeEnumFont(name, fallback)
+	local ok, value = pcall(function()
+		return Enum.Font[name]
+	end)
+	if ok and value then
+		return value
+	end
+	return fallback
+end
+
 NeverLose.Fonts = {
-	Gotham = Enum.Font.Gotham,
-	GothamMedium = Enum.Font.GothamMedium,
-	GothamBold = Enum.Font.GothamBold,
-	GothamBlack = Enum.Font.GothamBlack,
-	GothamSemibold = Enum.Font.GothamSemibold,
-	SourceSans = Enum.Font.SourceSans,
-	SourceSansBold = Enum.Font.SourceSansBold,
-	SourceSansLight = Enum.Font.SourceSansLight,
-	SourceSansSemibold = Enum.Font.SourceSansSemibold,
-	SourceSansItalic = Enum.Font.SourceSansItalic,
-	Roboto = Enum.Font.Roboto,
-	RobotoBold = Enum.Font.RobotoBold,
-	RobotoCondensed = Enum.Font.RobotoCondensed,
-	RobotoMono = Enum.Font.RobotoMono,
-	Arial = Enum.Font.Arial,
-	ArialBold = Enum.Font.ArialBold,
-	BuilderSans = Enum.Font.BuilderSans,
-	BuilderSansMedium = Enum.Font.BuilderSansMedium,
-	BuilderSansBold = Enum.Font.BuilderSansBold,
-	BuilderSansExtraBold = Enum.Font.BuilderSansExtraBold,
-	Code = Enum.Font.Code,
-	Fantasy = Enum.Font.Fantasy,
-	Arcade = Enum.Font.Arcade,
-	Highway = Enum.Font.Highway,
-	Legacy = Enum.Font.Legacy,
+	Gotham = SafeEnumFont("Gotham", Enum.Font.GothamMedium),
+	GothamMedium = SafeEnumFont("GothamMedium", Enum.Font.GothamMedium),
+	GothamBold = SafeEnumFont("GothamBold", Enum.Font.GothamBold),
+	GothamBlack = SafeEnumFont("GothamBlack", Enum.Font.GothamBold),
+	GothamSemibold = SafeEnumFont("GothamSemibold", Enum.Font.GothamMedium),
+	SourceSans = SafeEnumFont("SourceSans", Enum.Font.SourceSans),
+	SourceSansBold = SafeEnumFont("SourceSansBold", Enum.Font.SourceSansBold),
+	SourceSansLight = SafeEnumFont("SourceSansLight", Enum.Font.SourceSans),
+	SourceSansSemibold = SafeEnumFont("SourceSansSemibold", Enum.Font.SourceSans),
+	SourceSansItalic = SafeEnumFont("SourceSansItalic", Enum.Font.SourceSans),
+	Roboto = SafeEnumFont("Roboto", Enum.Font.Roboto),
+	RobotoBold = SafeEnumFont("RobotoBold", Enum.Font.Roboto),
+	RobotoCondensed = SafeEnumFont("RobotoCondensed", Enum.Font.Roboto),
+	RobotoMono = SafeEnumFont("RobotoMono", Enum.Font.Roboto),
+	Arial = SafeEnumFont("Arial", Enum.Font.Arial),
+	ArialBold = SafeEnumFont("ArialBold", Enum.Font.Arial),
+	BuilderSans = SafeEnumFont("BuilderSans", Enum.Font.GothamMedium),
+	BuilderSansMedium = SafeEnumFont("BuilderSansMedium", Enum.Font.GothamMedium),
+	BuilderSansBold = SafeEnumFont("BuilderSansBold", Enum.Font.GothamBold),
+	BuilderSansExtraBold = SafeEnumFont("BuilderSansExtraBold", Enum.Font.GothamBold),
+	Code = SafeEnumFont("Code", Enum.Font.Code),
+	Fantasy = SafeEnumFont("Fantasy", Enum.Font.Fantasy),
+	Arcade = SafeEnumFont("Arcade", Enum.Font.Arcade),
+	Highway = SafeEnumFont("Highway", Enum.Font.Highway),
+	Legacy = SafeEnumFont("Legacy", Enum.Font.Legacy),
 	BuilderIcons = NeverLose.BuiltInRegular,
 };
 
@@ -4237,8 +4247,12 @@ end;
 
 function NeverLose:SetFont(fontName)
 	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
-	local font = self.Fonts[fontName] or self.Fonts.GothamMedium;
-	self.FontName = fontName or "GothamMedium";
+	local font = self.Fonts[fontName] or self.Fonts.GothamMedium or Enum.Font.GothamMedium;
+	self.FontName = self.Fonts[fontName] and fontName or "GothamMedium";
+
+	if not self.ScreenGui then
+		return
+	end
 
 	for _, obj in ipairs(self.ScreenGui:GetDescendants()) do
 		if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
@@ -4471,76 +4485,6 @@ if NeverLose.ScreenGui then
 	end));
 end;
 
-function NeverLose:_NormalizeImage(value)
-	if typeof(value) == "number" then
-		return "rbxassetid://" .. tostring(value);
-	end;
-
-	if typeof(value) ~= "string" then
-		return "";
-	end;
-
-	local s = value:gsub("^%s+", ""):gsub("%s+$", "");
-	if s == "" then return "" end;
-
-	if tonumber(s) then
-		return "rbxassetid://" .. s;
-	end;
-
-	return s;
-end;
-
-function NeverLose:SetBackgroundImage(value, transparency, scaleType)
-	local normalized = self:_NormalizeImage(value);
-	self.BackgroundImageSource = value or "";
-	self.BackgroundImage = normalized;
-
-	local image = self.__WindowBackgroundImage;
-	if not image then return end;
-
-	image.ImageTransparency = tonumber(transparency) or image.ImageTransparency;
-	image.ScaleType = scaleType or image.ScaleType;
-
-	if normalized == "" then
-		image.Image = "";
-		image.Visible = false;
-		return;
-	end;
-
-	-- rbxasset / rbxthumb / asset ids work directly.
-	if normalized:match("^rbxasset") or normalized:match("^rbxthumb") then
-		image.Image = normalized;
-		image.Visible = true;
-		return;
-	end;
-
-	-- HTTP(S) image/CDN URLs: cache locally when the executor supports it.
-	if normalized:match("^https?://") and getcustomasset and writefile then
-		task.spawn(function()
-			local ok = pcall(function()
-				local hash = self.RandomString() .. tostring(math.floor(os.clock()*100000));
-				local ext = normalized:match("%.([%a%d]+)") or "png";
-				ext = ext:lower();
-				if ext ~= "png" and ext ~= "jpg" and ext ~= "jpeg" and ext ~= "webp" then
-					ext = "png";
-				end;
-
-				local path = "assetsss/background_" .. hash .. "." .. ext;
-				writefile(path, game:HttpGet(normalized));
-				local asset = getcustomasset(path);
-
-				image.Image = asset;
-				image.Visible = true;
-				self.BackgroundImageAsset = asset;
-			end);
-
-			if not ok then
-				image.Visible = false;
-			end;
-		end);
-	end;
-end;
-
 function NeverLose:SetMainColor(color)
 	if not self.__ApplyingTheme then self:_MarkCustomTheme() end;
 	if typeof(color) ~= "Color3" then return end;
@@ -4682,22 +4626,6 @@ function NeverLose:CreateWindow(Config)
 	WindowFrame.Position = UDim2.new(255, 0, 255, 0)
 	WindowFrame.Size = Window.Size
 	WindowFrame.Active = true;
-
-	-- Custom 2D background. Supports numeric asset IDs, rbxassetid://,
-	-- rbxthumb:// and direct HTTP(S) image/CDN URLs when getcustomasset exists.
-	local WindowBackgroundImage = Instance.new("ImageLabel");
-	WindowBackgroundImage.Name = NeverLose.RandomString();
-	WindowBackgroundImage.Parent = WindowFrame;
-	WindowBackgroundImage.BackgroundTransparency = 1;
-	WindowBackgroundImage.BorderSizePixel = 0;
-	WindowBackgroundImage.Position = UDim2.fromScale(0, 0);
-	WindowBackgroundImage.Size = UDim2.fromScale(1, 1);
-	WindowBackgroundImage.ZIndex = 0;
-	WindowBackgroundImage.ScaleType = Enum.ScaleType.Crop;
-	WindowBackgroundImage.ImageTransparency = 0.55;
-	WindowBackgroundImage.Visible = false;
-	NeverLose.__WindowBackgroundImage = WindowBackgroundImage;
-	Window.BackgroundImage = WindowBackgroundImage;
 
 	local TopLogoDecorator = Instance.new("ImageLabel")
 	TopLogoDecorator.Parent = WindowFrame
@@ -7806,9 +7734,12 @@ function NeverLose:CreateIndicator()
 end;
 
 function NeverLose:Unload()
-	if not NeverLose.UnloadEnabled or NeverLose.__Unloaded then
-		return;
-	end;
+	if NeverLose.__Unloaded then
+		return true
+	end
+	if NeverLose.UnloadEnabled == false then
+		return false
+	end
 	NeverLose.__Unloaded = true;
 
 	for i,v in next, NeverLose.GlobalSignals do
@@ -7826,6 +7757,7 @@ function NeverLose:Unload()
 	-- Stop library-owned loops/connections that may have been registered elsewhere.
 	NeverLose.Flags = {}
 	NeverLose.IsMosueOverOtherFrame = false
+	return true
 end;
 
 return NeverLose;
