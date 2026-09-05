@@ -1,3 +1,4 @@
+-- FAST START PATCH: UI creation is kept on the main path; demo notifications/logs are deferred.
 
 
 do
