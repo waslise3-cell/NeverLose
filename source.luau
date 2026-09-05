@@ -208,6 +208,7 @@ if getcustomasset then
 		makefolder(dir);
 	end;
 
+	-- [[ ЗАКОММЕНТИРОВАНО: Загрузка логотипа
 	pcall(function()
 		if not isfile(dir..'/'..'logo.png') then
 			local byte = game:HttpGet(string.format(link,'logo.png'));
@@ -220,7 +221,9 @@ if getcustomasset then
 			NeverLose.GlobalLogo = getcustomasset(dir..'/'..'logo.png')
 		end;
 	end);
+	-- ]]
 
+	-- Градиент цвета оставляем активным, чтобы работал ColorPicker
 	pcall(function()
 		if not isfile(dir..'/'..'saturation_value_gradient.png') then
 			local byte = game:HttpGet(string.format(link,'saturation_value_gradient.png'));
