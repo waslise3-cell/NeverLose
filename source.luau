@@ -1131,40 +1131,99 @@ NeverLose.Drag = LPH_NO_VIRTUALIZE(function(InputFrame: Frame, MoveFrame: Frame,
 	local dragToggle: boolean = false;
 	local dragStart: Vector3 = nil;
 	local startPos: UDim2 = nil;
-	local Tween = TweenInfo.new(Speed);
+	local targetPosition: UDim2 = MoveFrame.Position;
+
+	
+	local OutlineProxy = Instance.new("Frame")
+	local OutlineCorner = Instance.new("UICorner")
+	local OutlineStroke = Instance.new("UIStroke")
+
+	OutlineProxy.Name = NeverLose.RandomString();
+	OutlineProxy.BackgroundColor3 = NeverLose.AccentColor
+	OutlineProxy.BackgroundTransparency = 1
+	OutlineProxy.BorderSizePixel = 0
+	OutlineProxy.Visible = false
+	OutlineProxy.ZIndex = 9999
+	OutlineProxy.Parent = MoveFrame.Parent or NeverLose.ScreenGui
+
+	OutlineCorner.CornerRadius = UDim.new(0, 10)
+	OutlineCorner.Parent = OutlineProxy
+
+	OutlineStroke.Color = NeverLose.AccentColor
+	OutlineStroke.Thickness = 1.5
+	OutlineStroke.Transparency = 1
+	OutlineStroke.Parent = OutlineProxy
 
 	local updateInput = function(input)
 		local delta = input.Position - dragStart;
-		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
+		targetPosition = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		);
 
-		if NeverLose.Global3DRenderMode then
-			NeverLose.PlayAnimate(MoveFrame,Tween,{
-				Position = UDim2.fromScale(0.5,0.5)
-			});
-		else
-			NeverLose.PlayAnimate(MoveFrame,Tween,{
-				Position = position
+		if not NeverLose.Global3DRenderMode then
+			NeverLose.PlayAnimate(OutlineProxy, TweenInfo.new(0.03), {
+				Position = targetPosition
 			});
 		end;
 	end;
 
 	NeverLose:AddSignal(InputFrame.InputBegan:Connect(function(input)
 		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+			if NeverLose.Global3DRenderMode then return end
+			
 			dragToggle = true;
 			dragStart = input.Position;
 			startPos = MoveFrame.Position;
+			targetPosition = startPos;
+
+			
+			OutlineProxy.Size = MoveFrame.Size;
+			OutlineProxy.AnchorPoint = MoveFrame.AnchorPoint;
+			OutlineProxy.Position = MoveFrame.Position;
+			OutlineProxy.Parent = MoveFrame.Parent;
+			OutlineProxy.Visible = true;
+
+			
+			NeverLose.PlayAnimate(OutlineProxy, FastTween, {
+				BackgroundTransparency = 0.88
+			});
+			NeverLose.PlayAnimate(OutlineStroke, FastTween, {
+				Transparency = 0.15
+			});
 
 			local input_end;
-			input_end = input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false;
+			input_end = UserInputService.InputEnded:Connect(function(endInput)
+				if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+					if dragToggle then
+						dragToggle = false;
+						input_end:Disconnect();
 
-					input_end:Disconnect();
+						
+						NeverLose.PlayAnimate(OutlineProxy, SlowyTween, {
+							BackgroundTransparency = 1
+						});
+						NeverLose.PlayAnimate(OutlineStroke, SlowyTween, {
+							Transparency = 1
+						});
+
+						task.delay(0.2, function()
+							if not dragToggle then
+								OutlineProxy.Visible = false;
+							end
+						end);
+
+						
+						NeverLose.PlayAnimate(MoveFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+							Position = targetPosition
+						});
+					end
 				end
-			end)
+			end);
 		end
 	end));
+
+	
 
 	NeverLose:AddSignal(UserInputService.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
