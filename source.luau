@@ -4,15 +4,61 @@
 
 
 
+-- Compatibility bootstrap.
+-- Keeps the original library behavior, but does not require executor-only
+-- globals to exist when the source is loaded in a different Luau environment.
+
 do
-	local Constant = 'L'..'P'..'H'..'_NO_VIRTUALIZE';
-	getfenv()[Constant] = getfenv()[Constant] or function(f) return f end;
-end;
+	local _getgenv =
+		(type(getgenv) == "function" and getgenv)
+		or (type(getfenv) == "function" and getfenv)
+		or function()
+			return _G
+		end
+
+	local _env = _getgenv()
+
+	local Constant = 'L'..'P'..'H'..'_NO_VIRTUALIZE'
+	local _virtualize = _env[Constant]
+
+	if type(_virtualize) ~= "function" then
+		_virtualize = function(f)
+			return f
+		end
+		_env[Constant] = _virtualize
+	end
+
+	-- Keep the name available to the rest of this source as before.
+	LPH_NO_VIRTUALIZE = _virtualize
+end
 
 cloneref = cloneref or function(i) return i end;
 gethui = gethui or get_hidden_gui;
 getcustomasset = getcustomasset or getsynasset;
-getgenv = getgenv or getfenv;
+getgenv = getgenv or function() return _G end;
+
+local _GlobalEnv = getgenv();
+
+-- File APIs are optional in some loaders/Studio environments.
+-- If they are unavailable, config/asset operations safely become no-ops
+-- instead of preventing the library itself from loading.
+writefile = writefile or _GlobalEnv.writefile;
+makefolder = makefolder or _GlobalEnv.makefolder;
+readfile = readfile or _GlobalEnv.readfile;
+delfolder = delfolder or _GlobalEnv.delfolder;
+delfile = delfile or _GlobalEnv.delfile;
+listfiles = listfiles or _GlobalEnv.listfiles;
+isfolder = isfolder or _GlobalEnv.isfolder;
+isfile = isfile or _GlobalEnv.isfile;
+
+writefile = type(writefile) == "function" and writefile or function() return false end;
+makefolder = type(makefolder) == "function" and makefolder or function() return false end;
+readfile = type(readfile) == "function" and readfile or function() return nil end;
+delfolder = type(delfolder) == "function" and delfolder or function() return false end;
+delfile = type(delfile) == "function" and delfile or function() return false end;
+listfiles = type(listfiles) == "function" and listfiles or function() return {} end;
+isfolder = type(isfolder) == "function" and isfolder or function() return false end;
+isfile = type(isfile) == "function" and isfile or function() return false end;
 
 local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 	if game:GetService('RunService'):IsStudio() then
@@ -30,40 +76,34 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 			local block = BaseWorkspace;
 
 			for i,v in next , main do
-				block = block[v];
+				block = block:FindFirstChild(v) or block[v];
 			end;
 
 			return block;
 		end;
 
 		getgenv().readfile = function(path)
-			local path : StringValue = __get_path(path);
-
-			return path.Value;
+			local pathObject = __get_path(path);
+			if pathObject and pathObject:IsA("StringValue") then
+				return pathObject.Value;
+			end;
+			error("file not found: " .. tostring(path));
 		end;
 
 		getgenv().isfile = function(path)
-			local success , message = pcall(function()
+			local success, object = pcall(function()
 				return __get_path(path);
 			end);
 
-			if success and not message:IsA("Folder") then
-				return true;
-			end;
-
-			return false;
+			return success and object ~= nil and object:IsA("StringValue");
 		end;
 
 		getgenv().isfolder = function(path)
-			local success , message = pcall(function()
+			local success, object = pcall(function()
 				return __get_path(path);
 			end);
 
-			if success and message:IsA("Folder") then
-				return true;
-			end;
-
-			return false;
+			return success and object ~= nil and object:IsA("Folder");
 		end;
 
 		getgenv().writefile = function(path,content)
@@ -73,29 +113,43 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 
 			for i,v in next , main do
 				local item = block:FindFirstChild(v);
-				if not item then
-					local c = Instance.new('StringValue',block);
 
-					c.Name = tostring(v);
-					c.Value = content;
-				else
-					if item:IsA('StringValue') and tostring(item) == v then
-						item.Name = tostring(v);
+				if i == #main then
+					if item and item:IsA('StringValue') then
 						item.Value = content;
+					else
+						local c = Instance.new('StringValue');
+						c.Name = tostring(v);
+						c.Value = content;
+						c.Parent = block;
+					end;
+				else
+					if not item then
+						item = Instance.new('Folder');
+						item.Name = tostring(v);
+						item.Parent = block;
 					end;
 
-					block = item;
+					if item:IsA("Folder") then
+						block = item;
+					else
+						error("path component is not a folder: " .. tostring(v));
+					end;
 				end;
 			end;
-		end;
+	end;
 
 		getgenv().listfiles = function(path)
 			local fold = __get_path(path);
+			if not fold or not fold:IsA("Folder") then
+				return {};
+			end;
+
 			local pa = {};
 
 			for i,v in next , fold:GetChildren() do
-				if v:IsA('StringValue') then
-					table.insert(pa,path..'/'..tostring(v));
+				if v:IsA('StringValue') or v:IsA('Folder') then
+					table.insert(pa,path..'/'..tostring(v.Name));
 				end;
 			end;
 
@@ -109,12 +163,17 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 
 			for i,v in next , main do
 				local item = block:FindFirstChild(v);
-				if not item then
-					local c = Instance.new('Folder',block);
 
-					c.Name = tostring(v);
-				else
+				if not item then
+					item = Instance.new('Folder');
+					item.Name = tostring(v);
+					item.Parent = block;
+				end;
+
+				if item:IsA("Folder") then
 					block = item;
+				else
+					error("path component is not a folder: " .. tostring(v));
 				end;
 			end;
 		end;
@@ -126,31 +185,46 @@ local LOAD_ENV = LPH_NO_VIRTUALIZE(function()
 
 			for i,v in next , main do
 				local item = block:FindFirstChild(v);
-				if item and item:IsA('StringValue') then
-					item:Destroy();
-				else
+				if not item then
+					return;
+				end;
+
+				if i == #main then
+					if item:IsA('StringValue') then
+						item:Destroy();
+					end;
+					return;
+				end;
+
+				if item:IsA("Folder") then
 					block = item;
+				else
+					return;
 				end;
 			end;
 		end;
+
+		-- Refresh local bindings after the Studio fallbacks are installed.
+		writefile = getgenv().writefile;
+		makefolder = getgenv().makefolder;
+		readfile = getgenv().readfile;
+		delfile = getgenv().delfile;
+		listfiles = getgenv().listfiles;
+		isfolder = getgenv().isfolder;
+		isfile = getgenv().isfile;
 	end;
 end)
 
 LOAD_ENV();
 
-writefile = writefile or getgenv().writefile;
-makefolder = makefolder or getgenv().makefolder;
-readfile = readfile or getgenv().readfile;
-delfolder = delfolder or getgenv().delfolder;
-delfile = delfile or getgenv().delfile;
-listfiles = listfiles or getgenv().listfiles;
-isfolder = isfolder or getgenv().isfolder;
-isfile = isfile or getgenv().isfile;
-
 local NeverLose = {};
 
-NeverLose.BuiltInRegular = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Regular,Enum.FontStyle.Normal);
-NeverLose.BuiltInBold = Font.new('rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json',Enum.FontWeight.Bold,Enum.FontStyle.Normal);
+local _BuilderIconFont = 'rbxasset://LuaPackages/Packages/_Index/BuilderIcons/BuilderIcons/BuilderIcons.json';
+local _okRegular, _regularFont = pcall(Font.new, _BuilderIconFont, Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+local _okBold, _boldFont = pcall(Font.new, _BuilderIconFont, Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+
+NeverLose.BuiltInRegular = _okRegular and _regularFont or Font.fromEnum(Enum.Font.Gotham);
+NeverLose.BuiltInBold = _okBold and _boldFont or Font.fromEnum(Enum.Font.GothamBold);
 NeverLose.GlobalSignals = {};
 NeverLose.UnloadEnabled = false;
 
@@ -235,7 +309,7 @@ NeverLose.GlobalLogo = "";
 NeverLose.LogoReady = false;
 NeverLose.ImageColorMapping = "rbxassetid://4155801252";
 
-if getcustomasset then
+if getcustomasset and type(writefile) == "function" and type(isfile) == "function" and type(isfolder) == "function" and type(makefolder) == "function" then
 	local link = "https://raw.githubusercontent.com/waslise3-cell/NeverLose/main/assets/%s";
 	local dir = "assetsss";
 
