@@ -159,6 +159,28 @@ local TweenService: TweenService = cloneref(game:GetService('TweenService'));
 local UserInputService: UserInputService = cloneref(game:GetService('UserInputService'));
 local TextService: TextService = cloneref(game:GetService('TextService'));
 local GuiService: GuiService = cloneref(game:GetService('GuiService'));
+NeverLose.IsMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled;
+NeverLose.ForceMobileButton = false;
+NeverLose.AccentBindings = {};
+
+function NeverLose:BindAccent(Object, Property)
+	if not Object or not Property then
+		return Object;
+	end;
+
+	local Binding = {
+		Object = Object,
+		Property = Property,
+	};
+
+	table.insert(self.AccentBindings, Binding);
+
+	pcall(function()
+		Object[Property] = self.AccentColor;
+	end);
+
+	return Object;
+end;
 local RunService: RunService = cloneref(game:GetService('RunService'));
 local Players: Players = cloneref(game:GetService('Players'));
 local HttpService: HttpService = cloneref(game:GetService('HttpService'));
@@ -6003,213 +6025,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 	return idx;
 end;
 
-function NeverLose:CreateWindow(Config)
-	Config = NeverLose:ProcessParams(Config , {
-		Logo = NeverLose.GlobalLogo,
-		Name = "Shitaro",
-		Content = "Murder Mustery 2",
-		Size = UDim2.new(0, 640, 0, 480),
-		ConfigFolder = "ShitaroCfg",
-		Enable3DRenderer = false,
-		Keybind = "Insert"
-	});
 
-	if NeverLose.IsMobile then
-		Config.Size = NeverLose.Scales.Small;
-	end;
-
-	local Window = {
-		Logo = Config.Logo,
-		Name = Config.Name,
-		Content = Config.Content,
-		Size = Config.Size,
-		ConfigFolder = Config.ConfigFolder,
-		Signal = NeverLose:CreateSignal(true),
-		Tabs = {},
-		CurrentTab = 1,
-		Keybind = Config.Keybind,
-		Enable3DRenderer = Config.Enable3DRenderer
-	};
-
-	NeverLose.GlobalLogo = Window.Logo;
-
-	local Logging = NeverLose:CreateLogger();
-	if not isfolder(Window.ConfigFolder) then
-		makefolder(Window.ConfigFolder);
-	end;
-
-	local WindowFrame = Instance.new("Frame")
-	local UICorner = Instance.new("UICorner")
-	local LeftMenuFrame = Instance.new("Frame")
-	local HeadFrame = Instance.new("Frame")
-	local LogoImage = Instance.new("ImageLabel")
-	local UICorner_2 = Instance.new("UICorner")
-	local WindowName = Instance.new("TextLabel")
-	local WindowContent = Instance.new("TextLabel")
-	local LineFrame = Instance.new("Frame")
-	local LeftScrollingFrame = Instance.new("ScrollingFrame")
-	local UIListLayout = Instance.new("UIListLayout")
-	local BottomFrame = Instance.new("Frame")
-	local AccountProfile = Instance.new("ImageLabel")
-	local UICorner_3 = Instance.new("UICorner")
-	local AccountName = Instance.new("TextLabel")
-	local ExpireLabel = Instance.new("TextLabel")
-	local LineFrame_2 = Instance.new("Frame")
-	local UserSettingButton = Instance.new("TextLabel")
-	local RightMenuFrame = Instance.new("Frame")
-	local UIStroke = Instance.new("UIStroke")
-	local UICorner_4 = Instance.new("UICorner")
-	local RightHeader = Instance.new("Frame")
-	local LineFrame_3 = Instance.new("Frame")
-	local ConfigFrame = Instance.new("Frame")
-	local UIStroke_2 = Instance.new("UIStroke")
-	local UICorner_5 = Instance.new("UICorner")
-	local ConfigIcon = Instance.new("TextLabel")
-	local LineFrame_4 = Instance.new("Frame")
-	local ConfigName = Instance.new("TextLabel")
-	local ConfigBthIcon = Instance.new("TextLabel")
-	local SearchFrame = Instance.new("Frame")
-	local SearchIcon = Instance.new("TextLabel")
-	local SearchBox = Instance.new("TextBox")
-	local TabContainer = Instance.new("Frame")
-
-	WindowFrame.Name = NeverLose.RandomString();
-	WindowFrame.Parent = NeverLose.ScreenGui;
-	WindowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	WindowFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 13)
-	WindowFrame.BackgroundTransparency = 0.055
-	WindowFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	WindowFrame.BorderSizePixel = 0
-	WindowFrame.ClipsDescendants = true
-	WindowFrame.Position = UDim2.new(255, 0, 255, 0)
-	WindowFrame.Size = Window.Size
-	WindowFrame.Active = true;
-
-	if not NeverLose.EnabledBlur then
-		WindowFrame.BackgroundTransparency = 0.0255
-	end;
-
-	local BackgroundLayer
-	local BackgroundAnimation
-	local BackgroundAnimationToken = 0
-	local BackgroundAnimationRunning = false
-	local FuryEnabled = true
-	local FuryScale = 0.8
-	local animationAssets = {}
-
-	local function UpdateBackgroundAnimationPosition()
-		if not BackgroundAnimation or not WindowFrame.Parent then
-			return
-		end
-		local absolutePosition = WindowFrame.AbsolutePosition
-		local absoluteSize = WindowFrame.AbsoluteSize
-		local baseSize = math.min(absoluteSize.Y * 0.72, absoluteSize.X * 0.55)
-		local imageSize = math.floor(baseSize * FuryScale)
-		BackgroundAnimation.Size = UDim2.fromOffset(imageSize, imageSize)
-		BackgroundAnimation.Position = UDim2.fromOffset(
-			absolutePosition.X + absoluteSize.X + math.floor(imageSize * 0.06),
-			absolutePosition.Y + math.floor(imageSize * 0.38)
-		)
-	end
-
-	if getcustomasset then
-		for index = 1, 3 do
-			local assetOk, asset = pcall(getcustomasset, "assets/fury_round_" .. index .. ".png")
-			if assetOk and asset then
-				table.insert(animationAssets, asset)
-			end
-		end
-
-		if #animationAssets == 3 then
-			if NeverLose.ScreenGui.DisplayOrder < 1 then
-				NeverLose.ScreenGui.DisplayOrder = 1
-			end
-
-			BackgroundLayer = Instance.new("ScreenGui")
-			BackgroundLayer.Name = NeverLose.RandomString()
-			BackgroundLayer.IgnoreGuiInset = true
-			BackgroundLayer.ResetOnSpawn = false
-			BackgroundLayer.DisplayOrder = NeverLose.ScreenGui.DisplayOrder - 1
-			BackgroundLayer.ZIndexBehavior = Enum.ZIndexBehavior.Global
-			BackgroundLayer.Enabled = false
-			ProtectGui(BackgroundLayer)
-			BackgroundLayer.Parent = CoreGui
-
-			BackgroundAnimation = Instance.new("ImageLabel")
-			BackgroundAnimation.Name = NeverLose.RandomString()
-			BackgroundAnimation.Parent = BackgroundLayer
-			BackgroundAnimation.Active = false
-			BackgroundAnimation.AnchorPoint = Vector2.new(1, 1)
-			BackgroundAnimation.BackgroundTransparency = 1
-			BackgroundAnimation.BorderSizePixel = 0
-			BackgroundAnimation.Image = animationAssets[1]
-			BackgroundAnimation.ImageRectOffset = Vector2.new(0, 0)
-			BackgroundAnimation.ImageRectSize = Vector2.new(256, 256)
-			BackgroundAnimation.ScaleType = Enum.ScaleType.Fit
-			BackgroundAnimation.ZIndex = 1
-
-			local backgroundCorner = Instance.new("UICorner")
-			backgroundCorner.CornerRadius = UDim.new(0.16, 0)
-			backgroundCorner.Parent = BackgroundAnimation
-
-			NeverLose:AddSignal(WindowFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(UpdateBackgroundAnimationPosition))
-			NeverLose:AddSignal(WindowFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(UpdateBackgroundAnimationPosition))
-			NeverLose:AddSignal(NeverLose.ScreenGui.Destroying:Connect(function()
-				if BackgroundLayer then
-					BackgroundLayer:Destroy()
-					BackgroundLayer = nil
-					BackgroundAnimation = nil
-				end
-			end))
-
-			task.defer(UpdateBackgroundAnimationPosition)
-			task.spawn(function()
-				pcall(function()
-					game:GetService("ContentProvider"):PreloadAsync(animationAssets)
-				end)
-			end)
-		end
-	end
-
-	local function SetBackgroundAnimationState(windowVisible)
-		local enabled = windowVisible and FuryEnabled
-		if not BackgroundAnimation or not BackgroundLayer then
-			return
-		end
-
-		BackgroundLayer.Enabled = enabled
-		if BackgroundAnimationRunning == enabled then
-			return
-		end
-
-		BackgroundAnimationRunning = enabled
-		BackgroundAnimationToken += 1
-		local token = BackgroundAnimationToken
-
-		if not enabled then
-			return
-		end
-
-		task.spawn(function()
-			local frame = 0
-			while BackgroundAnimation and BackgroundLayer and BackgroundLayer.Enabled and BackgroundAnimationToken == token do
-				local sheetIndex = math.floor(frame / 12) + 1
-				local localFrame = frame % 12
-				local row = math.floor(localFrame / 4)
-				local column = localFrame % 4
-				if BackgroundAnimation.Image ~= animationAssets[sheetIndex] then
-					BackgroundAnimation.Image = animationAssets[sheetIndex]
-				end
-				BackgroundAnimation.ImageRectOffset = Vector2.new(column * 256, row * 256)
-				frame = (frame + 1) % 36
-				task.wait(1 / 12)
-			end
-		end)
-	end
-
-
-	return idx;
-end;
 
 
 -- ============================================================
@@ -6457,6 +6273,18 @@ function NeverLose:SetAccentColor(color)
 	ThemeRemember(self.Theme.AccentSources, previous)
 	ThemeRemember(self.Theme.AccentSources, color)
 	self.AccentColor = color
+
+	for i = #self.AccentBindings, 1, -1 do
+		local binding = self.AccentBindings[i];
+		local object = binding and binding.Object;
+		if object and object.Parent then
+			pcall(function()
+				object[binding.Property] = color;
+			end);
+		else
+			table.remove(self.AccentBindings, i);
+		end;
+	end;
 
 	-- Apply immediately, then once more after the current UI/tween work has
 	-- yielded. This prevents a control's SetRender tween from restoring the
