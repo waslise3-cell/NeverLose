@@ -228,34 +228,6 @@ NeverLose.BuiltInBold = _okBold and _boldFont or Font.fromEnum(Enum.Font.GothamB
 NeverLose.GlobalSignals = {};
 NeverLose.UnloadEnabled = false;
 
--- Popup manager: every floating menu/picker uses the same one-open-at-a-time
--- behavior. Clicking its trigger again closes that exact popup.
-NeverLose.__OpenPopup = nil;
-
-function NeverLose:CloseOpenPopup()
-	if self.__OpenPopup then
-		local close = self.__OpenPopup;
-		self.__OpenPopup = nil;
-		pcall(close);
-	end;
-end;
-
-function NeverLose:OpenPopup(closeCallback)
-	if self.__OpenPopup and self.__OpenPopup ~= closeCallback then
-		local previous = self.__OpenPopup;
-		self.__OpenPopup = nil;
-		pcall(previous);
-	end;
-
-	self.__OpenPopup = closeCallback;
-end;
-
-function NeverLose:ReleasePopup(closeCallback)
-	if self.__OpenPopup == closeCallback then
-		self.__OpenPopup = nil;
-	end;
-end;
-
 local cloneref: cloneref = cloneref or function(f) return f end;
 local TweenService: TweenService = cloneref(game:GetService('TweenService'));
 local UserInputService: UserInputService = cloneref(game:GetService('UserInputService'));
@@ -1564,10 +1536,6 @@ function NeverLose:CreateOptionWindow(Frame: Frame , Zindex)
 				OptionHandler.Parent = NeverLose.ScreenGui;
 			end;
 
-			NeverLose:OpenPopup(function()
-				Window.SetRender(false);
-			end);
-
 			FollowingThread = task.spawn(function()
 				while true do task.wait()
 					SetPosition();
@@ -2446,7 +2414,6 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 			end;
 
 			SetModeRender(false);
-			NeverLose:ReleasePopup(CloseModeList);
 		end;
 
 		local function OpenModeList()
@@ -2455,7 +2422,6 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 				modeOutsideConn = nil;
 			end;
 
-			NeverLose:OpenPopup(CloseModeList);
 			SetModeRender(true);
 
 			modeOutsideConn = UserInputService.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(input)
@@ -2751,8 +2717,6 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 			NeverLose.__OpenBindMenu = nil;
 		end;
 
-		NeverLose:ReleasePopup(CloseMenu);
-
 		NeverLose.PlayAnimate(BindMenu, SlowyTween, {
 			BackgroundTransparency = 1,
 			Size = UDim2.new(0, menuWidth, 0, 0)
@@ -2777,7 +2741,6 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 		end;
 
 		NeverLose.__OpenBindMenu = CloseMenu;
-		NeverLose:OpenPopup(CloseMenu);
 		NeverLose.IsMosueOverOtherFrame = true;
 
 		KeybindData.Refresh();
@@ -3610,40 +3573,28 @@ end;
 		end;
 
 		local signal;
-		local CloseColorPicker = LPH_NO_VIRTUALIZE(function()
-			if signal then
-				signal:Disconnect();
-				signal = nil;
-			end;
-
-			NeverLose.IsMosueOverOtherFrame = false;
-			BackendM.SetRender(false);
-			NeverLose:ReleasePopup(CloseColorPicker);
-		end);
-
 		NeverLose:CreateInput(ColorPicker , LPH_NO_VIRTUALIZE(function()
-			if BackendM.Root and BackendM.Root.Visible then
-				CloseColorPicker();
-				return;
-			end;
-
 			if signal then
 				signal:Disconnect();
 				signal = nil;
 			end;
 
-			NeverLose:OpenPopup(CloseColorPicker);
 			NeverLose.IsMosueOverOtherFrame = true;
 			BackendM.SetRender(true);
 
 			signal = UserInputService.InputBegan:Connect(function(Input)
 				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 					if not NeverLose:IsMouseOverFrame(ColorPicker) and not NeverLose:IsMouseOverFrame(BackendM.Root) then
-						CloseColorPicker();
+						if signal then
+							signal:Disconnect();
+							signal = nil;
+						end;
+
+						BackendM.SetRender(false);
 					end;
 				end;
 			end)
-		));
+		end));
 
 		ColorPickerLib.SetRender = LPH_NO_VIRTUALIZE(function(value)
 			if value then
@@ -4207,40 +4158,29 @@ end;
 		end;
 
 		local SecureSignal;
-		local CloseDropdown = LPH_NO_VIRTUALIZE(function()
-			if SecureSignal then
-				SecureSignal:Disconnect();
-				SecureSignal = nil;
-			end;
-
-			NeverLose.IsMosueOverOtherFrame = false;
-			DropdownLib.SetFrameRender(false);
-			NeverLose:ReleasePopup(CloseDropdown);
-		end);
-
 		NeverLose:CreateInput(Dropdown , LPH_NO_VIRTUALIZE(function()
-			if DropdownLib.OpenSignal:GetValue() then
-				CloseDropdown();
-				return;
-			end;
-
 			if SecureSignal then
 				SecureSignal:Disconnect();
 				SecureSignal = nil;
 			end;
 
-			NeverLose:OpenPopup(CloseDropdown);
 			DropdownLib.SetFrameRender(true);
 			NeverLose.IsMosueOverOtherFrame = true;
 
 			SecureSignal = UserInputService.InputBegan:Connect(function(Input)
 				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
 					if not NeverLose:IsMouseOverFrame(DropdownLib.BlockRoot) and not NeverLose:IsMouseOverFrame(Dropdown) then
-						CloseDropdown();
+						if SecureSignal then
+							SecureSignal:Disconnect();
+							SecureSignal = nil;
+						end;
+
+						NeverLose.IsMosueOverOtherFrame = false;
+						DropdownLib.SetFrameRender(false);
 					end;
 				end
 			end)
-		))
+		end))
 
 		DropdownLib.IsMatch = LPH_NO_VIRTUALIZE(function(v1)
 			if typeof(Config.Default) =='table' then
