@@ -1,6 +1,9 @@
 --[[
-    NeverLose UI Library
-    Forked from the full UI implementation, with NeverLose assets.
+                          Neverlose.cc UI Library
+    Author: 4lpaca
+	License: MIT
+    Discord: https://arceney.win/discord
+    Other-Projects: https://4lpaca.win
 ]]
 
 do
@@ -198,7 +201,7 @@ NeverLose.IconColor = Color3.fromRGB(255, 255, 255);
 NeverLose.ScreenGui = GlobalWindow;
 NeverLose.Flags = {};
 
-local AccentColorValue = Color3.fromRGB(97, 65, 145);
+local AccentColorValue = Color3.fromRGB(78, 127, 252);
 local AccentBindings = setmetatable({}, { __mode = "k" });
 
 function NeverLose:BindAccent(object, property)
@@ -265,16 +268,16 @@ NeverLose.RegisiteryColor = {};
 NeverLose.NameRegisitry = {};
 NeverLose.IsMosueOverOtherFrame = false;
 NeverLose.GlobalLogo = "";
-NeverLose.ImageColorMapping = "rbxassetid://4155801252";
+NeverLose.ImageColorMapping = "";
 
 if getcustomasset then
-	local dir = 'assetsss';
+	local dir = 'assets';
 	if not isfolder(dir) then
 		makefolder(dir);
 	end;
 	pcall(function()
 		if not isfile(dir..'/'..'logo.png') then
-			local byte = game:HttpGet('https://raw.githubusercontent.com/waslise3-cell/NeverLose/main/assets/logo.png');
+			local byte = game:HttpGet('https://raw.githubusercontent.com/shitarouse/ui/refs/heads/main/logo.png');
 			writefile(dir..'/'..'logo.png', byte);
 			task.wait();
 		end;
@@ -284,7 +287,7 @@ if getcustomasset then
 	end);
 	pcall(function()
 		if not isfile(dir..'/'..'saturation_value_gradient.png') then
-			local byte = game:HttpGet('https://raw.githubusercontent.com/waslise3-cell/NeverLose/main/assets/saturation_value_gradient.png');
+			local byte = game:HttpGet('https://raw.githubusercontent.com/shitarouse/ui/refs/heads/main/saturation_value_gradient.png');
 			writefile(dir..'/'..'saturation_value_gradient.png', byte);
 			task.wait();
 		end;
@@ -1131,99 +1134,40 @@ NeverLose.Drag = LPH_NO_VIRTUALIZE(function(InputFrame: Frame, MoveFrame: Frame,
 	local dragToggle: boolean = false;
 	local dragStart: Vector3 = nil;
 	local startPos: UDim2 = nil;
-	local targetPosition: UDim2 = MoveFrame.Position;
-
-	
-	local OutlineProxy = Instance.new("Frame")
-	local OutlineCorner = Instance.new("UICorner")
-	local OutlineStroke = Instance.new("UIStroke")
-
-	OutlineProxy.Name = NeverLose.RandomString();
-	OutlineProxy.BackgroundColor3 = NeverLose.AccentColor
-	OutlineProxy.BackgroundTransparency = 1
-	OutlineProxy.BorderSizePixel = 0
-	OutlineProxy.Visible = false
-	OutlineProxy.ZIndex = 9999
-	OutlineProxy.Parent = MoveFrame.Parent or NeverLose.ScreenGui
-
-	OutlineCorner.CornerRadius = UDim.new(0, 10)
-	OutlineCorner.Parent = OutlineProxy
-
-	OutlineStroke.Color = NeverLose.AccentColor
-	OutlineStroke.Thickness = 1.5
-	OutlineStroke.Transparency = 1
-	OutlineStroke.Parent = OutlineProxy
+	local Tween = TweenInfo.new(Speed);
 
 	local updateInput = function(input)
 		local delta = input.Position - dragStart;
-		targetPosition = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		);
+		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
 
-		if not NeverLose.Global3DRenderMode then
-			NeverLose.PlayAnimate(OutlineProxy, TweenInfo.new(0.03), {
-				Position = targetPosition
+		if NeverLose.Global3DRenderMode then
+			NeverLose.PlayAnimate(MoveFrame,Tween,{
+				Position = UDim2.fromScale(0.5,0.5)
+			});
+		else
+			NeverLose.PlayAnimate(MoveFrame,Tween,{
+				Position = position
 			});
 		end;
 	end;
 
 	NeverLose:AddSignal(InputFrame.InputBegan:Connect(function(input)
 		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-			if NeverLose.Global3DRenderMode then return end
-			
 			dragToggle = true;
 			dragStart = input.Position;
 			startPos = MoveFrame.Position;
-			targetPosition = startPos;
-
-			
-			OutlineProxy.Size = MoveFrame.Size;
-			OutlineProxy.AnchorPoint = MoveFrame.AnchorPoint;
-			OutlineProxy.Position = MoveFrame.Position;
-			OutlineProxy.Parent = MoveFrame.Parent;
-			OutlineProxy.Visible = true;
-
-			
-			NeverLose.PlayAnimate(OutlineProxy, FastTween, {
-				BackgroundTransparency = 0.88
-			});
-			NeverLose.PlayAnimate(OutlineStroke, FastTween, {
-				Transparency = 0.15
-			});
 
 			local input_end;
-			input_end = UserInputService.InputEnded:Connect(function(endInput)
-				if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
-					if dragToggle then
-						dragToggle = false;
-						input_end:Disconnect();
+			input_end = input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false;
 
-						
-						NeverLose.PlayAnimate(OutlineProxy, SlowyTween, {
-							BackgroundTransparency = 1
-						});
-						NeverLose.PlayAnimate(OutlineStroke, SlowyTween, {
-							Transparency = 1
-						});
-
-						task.delay(0.2, function()
-							if not dragToggle then
-								OutlineProxy.Visible = false;
-							end
-						end);
-
-						
-						NeverLose.PlayAnimate(MoveFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-							Position = targetPosition
-						});
-					end
+					input_end:Disconnect();
 				end
-			end);
+			end)
 		end
 	end));
-
-	
 
 	NeverLose:AddSignal(UserInputService.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
