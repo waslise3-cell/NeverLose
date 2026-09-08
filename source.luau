@@ -200,14 +200,25 @@ NeverLose.MainColor = Color3.fromRGB(8, 8, 13);
 -- Если этот блок не трогать/удалить, библиотека продолжит работать
 -- со стандартными Gotham-шрифтами.
 NeverLose.Fonts = {
+    -- Общие шрифты
     Regular = Enum.Font.GothamMedium,
     Bold = Enum.Font.GothamBold,
+
+    -- Отдельные шрифты для разных частей интерфейса
     Title = Enum.Font.GothamBlack,
     Header = Enum.Font.SourceSansBold,
     Small = Enum.Font.SourceSans,
     Tab = Enum.Font.Ubuntu,
     Section = Enum.Font.Code,
     Accent = Enum.Font.BuilderSans,
+
+    -- Нижняя панель аккаунта (как на 2-й картинке)
+    AccountName = Enum.Font.GothamBold,       -- xoly_TSX
+    AccountInfo = Enum.Font.GothamMedium,     -- 9300895563
+
+    -- Настройки в маленьком меню (как на 2-й картинке)
+    MenuLabel = Enum.Font.GothamMedium,       -- Menu Keybind / Menu Scale / 3D Menu
+    MenuValue = Enum.Font.GothamMedium,       -- Insert / Default
 };
 -- [[ END FONT SETTINGS ]]
 NeverLose.RegisiteryColor = {};
@@ -2552,7 +2563,7 @@ end;
 		ValueLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 		ValueLabel.Size = UDim2.new(1, 0, 1, 0)
 		ValueLabel.ZIndex = ZINdex + 14
-		ValueLabel.Font = NeverLose.Fonts.Regular
+		ValueLabel.Font = NeverLose.Fonts.MenuValue or NeverLose.Fonts.Regular
 		ValueLabel.Text = NeverLose:KeyCodeToStr(Config.Default or "None")
 		ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		ValueLabel.TextSize = 10.000
@@ -3542,7 +3553,7 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.Position = UDim2.new(0, 11, 0, 6)
 		BasedLabel.Size = UDim2.new(0,1, 0, 15)
 		BasedLabel.ZIndex = LayerIndex + 9
-		BasedLabel.Font = NeverLose.Fonts.Regular
+		BasedLabel.Font = NeverLose.Fonts.MenuLabel or NeverLose.Fonts.Regular
 		BasedLabel.Text = Name
 		BasedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		BasedLabel.TextSize = 13.000
@@ -4433,7 +4444,7 @@ function NeverLose:CreateWindow(Config)
 	AccountName.Position = UDim2.new(0, 55, 0, 5)
 	AccountName.Size = UDim2.new(0, 100, 0, 25)
 	AccountName.ZIndex = 7
-	AccountName.Font = NeverLose.Fonts.Bold
+	AccountName.Font = NeverLose.Fonts.AccountName or NeverLose.Fonts.Bold
 	AccountName.Text = ""
 	AccountName.TextColor3 = Color3.fromRGB(255, 255, 255)
 	AccountName.TextSize = 14.000
@@ -4449,7 +4460,7 @@ function NeverLose:CreateWindow(Config)
 	ExpireLabel.Position = UDim2.new(0, 55, 0, 25)
 	ExpireLabel.Size = UDim2.new(0, 200, 0, 15)
 	ExpireLabel.ZIndex = 7
-	ExpireLabel.Font = NeverLose.Fonts.Bold
+	ExpireLabel.Font = NeverLose.Fonts.AccountInfo or NeverLose.Fonts.Bold
 	ExpireLabel.Text = "never"
 	ExpireLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	ExpireLabel.TextSize = 10.000
